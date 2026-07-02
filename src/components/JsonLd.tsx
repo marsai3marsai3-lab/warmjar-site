@@ -69,6 +69,29 @@ export function LocalBusinessJsonLd() {
   );
 }
 
+export function PersonJsonLd() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.warmjar.com.tw";
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "萍萍老師",
+    jobTitle: "溫罐子創辦人 · 技術總監",
+    url: `${baseUrl}/founder`,
+    worksFor: {
+      "@type": "HealthAndBeautyBusiness",
+      name: "溫罐子養生館",
+      url: baseUrl,
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export function FaqPageJsonLd({
   faqs,
 }: {

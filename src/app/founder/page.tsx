@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { Heart, Zap, Users, Star, Target, ChevronRight } from "lucide-react";
+import { PersonJsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "創辦人理念 | 萍萍老師的故事與使命",
@@ -41,6 +42,7 @@ const missions = [
 export default function FounderPage() {
   return (
     <>
+      <PersonJsonLd />
       <Header />
       <main className="pt-20">
 
