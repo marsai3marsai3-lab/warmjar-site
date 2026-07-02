@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type React from "react";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
 const services: {
   id: string;
   Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  image?: string;
   name: string;
   tagline: string;
   desc: string;
@@ -80,6 +82,7 @@ const services: {
   {
     id: "warm-jar",
     Icon: Flame,
+    image: "/溫罐.jpg",
     name: "溫罐舒壓按摩",
     tagline: "屏東獨特溫熱舒壓體驗",
     desc: "以特製溫熱罐具輕柔地在背部、肩頸等部位滑動，利用溫熱感放鬆深層肌肉緊繃。適合長時間久坐、肩頸僵硬或需要深度放鬆的客人。",
@@ -91,6 +94,7 @@ const services: {
   {
     id: "fascia",
     Icon: FasciaPngIcon,
+    image: "/筋膜刀.jpg",
     name: "筋膜刀舒緩",
     tagline: "現代工具 × 傳統手法",
     desc: "運用專業筋膜刀工具，針對筋膜緊繃、肌肉黏連的部位進行舒緩，有效改善肌肉僵硬感。師傅會先確認您的敏感度，以舒適不過度的力道進行調理。",
@@ -113,6 +117,7 @@ const services: {
   {
     id: "cupping",
     Icon: CuppingPngIcon,
+    image: "/拔罐.jpg",
     name: "拔罐舒壓",
     tagline: "傳統拔罐・深層舒壓",
     desc: "運用傳統拔罐技法，透過負壓原理吸附於背部肌肉，促進局部血液循環，舒緩深層肌肉緊繃與疲勞感，是傳統民俗調理的經典項目。",
@@ -213,17 +218,29 @@ export default function ServicesPage() {
                   </a>
                 </div>
                 <div className={i % 2 === 1 ? "lg:col-start-1 lg:row-start-1" : ""}>
-                  <div className="aspect-square rounded-3xl bg-gradient-to-br from-terracotta/15 via-cream-dark to-olive/10 flex flex-col items-center justify-center gap-6 shadow-sm border border-cream-border">
-                    <div className="text-[#B8963E]">
-                      <s.Icon className="w-24 h-24" strokeWidth={1.0} />
+                  {s.image ? (
+                    <div className="aspect-square rounded-3xl overflow-hidden relative shadow-sm border border-cream-border">
+                      <Image
+                        src={s.image}
+                        alt={s.name}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                      />
                     </div>
-                    <div className="text-center">
-                      <p className="font-heading text-2xl text-ink font-semibold">
-                        {s.name}
-                      </p>
-                      <p className="text-xs text-ink-light mt-2">{s.note}</p>
+                  ) : (
+                    <div className="aspect-square rounded-3xl bg-gradient-to-br from-terracotta/15 via-cream-dark to-olive/10 flex flex-col items-center justify-center gap-6 shadow-sm border border-cream-border">
+                      <div className="text-[#B8963E]">
+                        <s.Icon className="w-24 h-24" strokeWidth={1.0} />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-heading text-2xl text-ink font-semibold">
+                          {s.name}
+                        </p>
+                        <p className="text-xs text-ink-light mt-2">{s.note}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
