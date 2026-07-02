@@ -189,7 +189,7 @@ export default function HomePage() {
                 {/* 桌機橫線 */}
                 <div className="hidden lg:block w-8 h-px bg-[#B8963E]" />
                 <p className="text-gold text-xs tracking-[0.3em] font-medium">
-                  屏東市莊敬街 · 舒壓養生館
+                  屏東市莊敬街 · 紓壓·按摩·放鬆
                 </p>
                 <span className="lg:hidden text-[#B8963E] opacity-60 text-base">❧</span>
               </div>
