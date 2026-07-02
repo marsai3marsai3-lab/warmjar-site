@@ -18,7 +18,7 @@ import { FacialMassagePngIcon, CuppingPngIcon, FasciaPngIcon, OilMassagePngIcon,
 export const metadata: Metadata = {
   title: "屏東按摩養生館 – 溫罐舒壓・筋膜刀・油壓 | 溫罐子",
   description:
-    "溫罐子養生館位於屏東市，提供溫罐舒壓、筋膜刀、全身油壓、美胸按摩等專業舒壓服務。自製點心湯品，讓您完整放鬆身心。LINE @warmjar 立即預約，體驗屏東最暖心的按摩館。",
+    "溫罐子屏東養生館，提供屏東按摩、溫罐舒壓、全身油壓、肩頸按摩、筋膜刀等專業放鬆按摩服務。自製點心湯品，讓您完整放鬆身心。LINE @warmjar 立即預約，體驗屏東按摩推薦首選。",
   alternates: { canonical: "/" },
 };
 

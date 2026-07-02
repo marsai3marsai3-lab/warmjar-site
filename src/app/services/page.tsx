@@ -19,7 +19,7 @@ import {
 export const metadata: Metadata = {
   title: "服務介紹 | 屏東舒壓按摩・溫罐舒壓・筋膜刀・油壓",
   description:
-    "溫罐子提供屏東在地多元舒壓服務：溫罐舒壓按摩、筋膜刀、全身油壓、美胸按摩、指壓、運動按摩、小臉按摩。每項服務皆由專業師傅量身調整，安心舒適有保障。",
+    "溫罐子提供屏東在地多元舒壓服務：溫罐舒壓按摩、筋膜刀、全身油壓、美胸按摩、指壓、運動按摩、小臉按摩。每項服務皆由專業師傅量身調整，安心舒適有保障，肩頸放鬆按摩尤其深受在地客人推薦。",
   alternates: { canonical: "/services" },
 };
 
@@ -222,7 +222,7 @@ export default function ServicesPage() {
                     <div className="aspect-square rounded-3xl overflow-hidden relative shadow-sm border border-cream-border">
                       <Image
                         src={s.image}
-                        alt={s.name}
+                        alt={`屏東${s.name}`}
                         fill
                         className="object-cover"
                         sizes="(min-width: 1024px) 50vw, 100vw"
