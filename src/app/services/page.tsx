@@ -34,12 +34,14 @@ const services: {
   duration: string;
   suitable: string;
   note: string;
+  pricingCategory?: string;
 }[] = [
   {
     id: "oil-massage",
     Icon: OilMassagePngIcon,
-    name: "全身油壓",
+    name: "熱石油壓",
     tagline: "天然精油 × 專業手技",
+    pricingCategory: "熱石油壓舒放",
     desc: "使用天然植物精油，以專業油壓手技全面舒緩全身肌肉。在香氛的環境中，讓身體每一寸肌肉都得到充分的放鬆與滋養，是最完整的全身舒壓體驗。",
     features: ["天然植物精油", "全身放鬆", "深層舒緩", "香氛療癒"],
     duration: "60 / 90 / 120 分鐘",
@@ -51,6 +53,7 @@ const services: {
     Icon: AcupressurePngIcon,
     name: "指壓放鬆",
     tagline: "傳統手法 · 精準舒壓",
+    pricingCategory: "指壓舒放",
     desc: "以傳統指壓手法，針對人體各穴位與肌肉群施加適當壓力，舒緩全身疲勞與緊繃感。適合喜歡傳統手法、不習慣使用精油的客人。",
     features: ["傳統指壓技法", "全身穴位舒緩", "力道可調", "不使用精油"],
     duration: "60 / 90 分鐘",
@@ -62,6 +65,7 @@ const services: {
     Icon: BreastMassagePngIcon,
     name: "美胸按摩",
     tagline: "專業女性保養課程",
+    pricingCategory: "美胸基礎呵護（純手技）",
     desc: "針對胸部進行專業舒壓按摩，促進胸部循環，放鬆周圍肌群。課程由女性師傅進行，全程保持隱私保護，讓您在安心舒適的環境中享受專屬保養體驗。",
     features: ["女性師傅服務", "隱私保護", "胸部循環舒壓", "放鬆周圍肌群"],
     duration: "60 分鐘",
@@ -73,6 +77,7 @@ const services: {
     Icon: FacialMassagePngIcon,
     name: "小臉按摩",
     tagline: "輕盈臉部・煥然一新",
+    pricingCategory: "小臉舒顏",
     desc: "針對臉部淋巴與肌肉群進行專業舒壓按摩，放鬆長時間緊繃的表情肌與下顎肌群，讓臉部感受輕盈舒適。是辦公族與長時間用眼者的最佳保養選擇。",
     features: ["臉部淋巴舒壓", "表情肌放鬆", "下顎緊繃舒緩", "輕盈舒適感"],
     duration: "30 / 60 分鐘",
@@ -85,6 +90,7 @@ const services: {
     image: "/溫罐.jpg",
     name: "溫罐舒壓按摩",
     tagline: "屏東獨特溫熱舒壓體驗",
+    pricingCategory: "溫罐舒放",
     desc: "以特製溫熱罐具輕柔地在背部、肩頸等部位滑動，利用溫熱感放鬆深層肌肉緊繃。適合長時間久坐、肩頸僵硬或需要深度放鬆的客人。",
     features: ["溫熱肌肉放鬆", "全背舒緩", "深層緊繃紓解", "搭配精油滋潤"],
     duration: "60 / 90 分鐘",
@@ -97,6 +103,7 @@ const services: {
     image: "/筋膜刀.jpg",
     name: "筋膜刀舒緩",
     tagline: "現代工具 × 傳統手法",
+    pricingCategory: "筋膜刀（走筋膜）",
     desc: "運用專業筋膜刀工具，針對筋膜緊繃、肌肉黏連的部位進行舒緩，有效改善肌肉僵硬感。師傅會先確認您的敏感度，以舒適不過度的力道進行調理。",
     features: ["筋膜緊繃舒緩", "肌肉黏連改善", "力道可調整", "可搭配按摩進行"],
     duration: "30 / 60 分鐘",
@@ -108,6 +115,7 @@ const services: {
     Icon: SportsMassagePngIcon,
     name: "運動按摩",
     tagline: "運動後最佳恢復選擇",
+    pricingCategory: "全方位放鬆",
     desc: "針對運動後的肌肉疲勞與緊繃設計的專業舒壓課程，結合伸展與按摩技法，幫助肌肉在運動後快速恢復至放鬆狀態，讓下一次的運動更有活力。",
     features: ["運動後肌肉舒緩", "結合伸展手法", "減輕酸痛感", "促進恢復"],
     duration: "60 / 90 分鐘",
@@ -120,6 +128,7 @@ const services: {
     image: "/拔罐.jpg",
     name: "拔罐舒壓",
     tagline: "傳統拔罐・深層舒壓",
+    pricingCategory: "全方位放鬆",
     desc: "運用傳統拔罐技法，透過負壓原理吸附於背部肌肉，促進局部血液循環，舒緩深層肌肉緊繃與疲勞感，是傳統民俗調理的經典項目。",
     features: ["負壓深層舒壓", "促進血液循環", "傳統民俗手法", "背部肌肉放鬆"],
     duration: "30 / 60 分鐘",
@@ -200,7 +209,10 @@ export default function ServicesPage() {
                     <span className="flex items-center gap-1.5 text-ink-muted">
                       <Banknote size={15} className="text-gold" />
                       詳見
-                      <Link href="/pricing" className="text-terracotta underline underline-offset-2">
+                      <Link
+                        href={s.pricingCategory ? `/pricing#${encodeURIComponent(s.pricingCategory)}` : "/pricing"}
+                        className="text-terracotta underline underline-offset-2"
+                      >
                         價格頁
                       </Link>
                     </span>

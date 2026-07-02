@@ -248,7 +248,8 @@ export default function PricingPage() {
               {pricingCategories.map((cat) => (
                 <div
                   key={cat.category}
-                  className="bg-white rounded-2xl border border-cream-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  id={cat.category}
+                  className="scroll-mt-28 bg-white rounded-2xl border border-cream-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="bg-gradient-to-r from-terracotta/10 to-cream-dark px-6 py-5 border-b border-cream-border">
                     <h2 className="font-heading text-xl font-semibold text-ink">
