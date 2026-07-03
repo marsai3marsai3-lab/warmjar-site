@@ -39,6 +39,7 @@ const services: {
   {
     id: "oil-massage",
     Icon: OilMassagePngIcon,
+    image: "/熱石油壓.jpg",
     name: "熱石油壓",
     tagline: "天然精油 × 專業手技",
     pricingCategory: "熱石油壓舒放",
@@ -51,6 +52,7 @@ const services: {
   {
     id: "acupressure",
     Icon: AcupressurePngIcon,
+    image: "/指壓.jpg",
     name: "指壓放鬆",
     tagline: "傳統手法 · 精準舒壓",
     pricingCategory: "指壓舒放",
@@ -63,6 +65,7 @@ const services: {
   {
     id: "breast",
     Icon: BreastMassagePngIcon,
+    image: "/美胸.jpg",
     name: "美胸按摩",
     tagline: "專業女性保養課程",
     pricingCategory: "美胸基礎呵護（純手技）",
@@ -75,6 +78,7 @@ const services: {
   {
     id: "face",
     Icon: FacialMassagePngIcon,
+    image: "/小臉按摩.jpg",
     name: "小臉按摩",
     tagline: "輕盈臉部・煥然一新",
     pricingCategory: "小臉舒顏",
