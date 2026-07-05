@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Phone, MapPin, Clock, MessageCircle } from "lucide-react";
+import { Phone, MapPin, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "聯絡我們 | 屏東按摩 溫罐子地址・電話・地圖",
@@ -76,8 +77,14 @@ export default function ContactPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-cream-border p-6 flex items-center gap-4 shadow-sm">
-                  <div className="w-11 h-11 rounded-xl bg-[#06C755]/10 text-[#06C755] flex items-center justify-center shrink-0">
-                    <MessageCircle size={20} />
+                  <div className="w-11 h-11 rounded-xl bg-terracotta/10 flex items-center justify-center shrink-0 p-2">
+                    <Image
+                      src="/LINE.webp"
+                      alt="LINE"
+                      width={28}
+                      height={28}
+                      className="object-contain"
+                    />
                   </div>
                   <div>
                     <p className="font-medium text-ink mb-1">LINE 官方帳號</p>
@@ -85,7 +92,7 @@ export default function ContactPage() {
                       href="https://line.me/R/ti/p/@warmjar"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-ink-muted hover:text-[#06C755] transition-colors"
+                      className="text-ink-muted hover:text-terracotta transition-colors"
                     >
                       @warmjar
                     </a>
