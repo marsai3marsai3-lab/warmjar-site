@@ -55,7 +55,7 @@ export default function FounderPage() {
               <div className="shrink-0">
                 <div className="relative w-52 h-52 lg:w-64 lg:h-64 rounded-full overflow-hidden border-4 border-[#C17B5C]/30">
                   <Image
-                    src="/形象照.png"
+                    src="/創辦人.jpg"
                     alt="萍萍老師"
                     fill
                     className="object-cover"
