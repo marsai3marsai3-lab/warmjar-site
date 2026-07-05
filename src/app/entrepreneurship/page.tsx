@@ -140,7 +140,7 @@ export default function EntrepreneurshipPage() {
               <h2 className="font-heading text-3xl sm:text-4xl font-semibold text-ink mb-3">
                 為什麼選擇養生產業創業？
               </h2>
-              <p className="text-ink-muted">低門檻、高回購、時間自主——是許多人轉換跑道的最佳選擇</p>
+              <p className="text-ink-muted">不容易被AI取代、真正的技術、人與人之間的溫暖、高回購、時間自主——是許多人轉換跑道的最佳選擇</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {reasons.map((r) => (
