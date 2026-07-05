@@ -187,11 +187,11 @@ export default function CoursesPage() {
                   <p className="text-ink/60 text-sm leading-relaxed mb-4">
                     {course.desc}
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-nowrap gap-1">
                     {course.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="text-xs text-olive bg-olive/10 px-2 py-0.5 rounded-full"
+                        className="text-[11px] text-olive bg-olive/10 px-1.5 py-0.5 rounded-full whitespace-nowrap"
                       >
                         {tag}
                       </span>
