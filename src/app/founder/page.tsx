@@ -9,7 +9,7 @@ import { PersonJsonLd } from "@/components/JsonLd";
 export const metadata: Metadata = {
   title: "創辦人理念 | 萍萍老師的故事與使命",
   description:
-    "認識溫罐子創辦人萍萍老師——從第一次接觸溫罐的感動，到在屏東創立養生館的心路歷程。了解她的理念、願景與對每位客人的承諾。",
+    "認識溫罐子創辦人萍萍老師——從第一次接觸溫罐的感動，到在屏東創立Spa館的心路歷程。了解她的理念、願景與對每位客人的承諾。",
   alternates: { canonical: "/founder" },
 };
 
@@ -107,7 +107,7 @@ export default function FounderPage() {
                     最終決定在屏東這片土地上，為更多人創造這樣的空間。
                   </p>
                   <p className="font-medium text-ink">
-                    溫罐子不只是一間養生館。<br />
+                    溫罐子不只是一間Spa館。<br />
                     它是我對每個來訪者的承諾：<span className="text-terracotta">你值得被好好照顧。</span>
                   </p>
                 </div>
@@ -116,7 +116,7 @@ export default function FounderPage() {
               {/* 右側數字亮點 */}
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { num: "屏東", label: "在地深耕", sub: "莊敬街養生館" },
+                  { num: "屏東", label: "在地深耕", sub: "莊敬街Spa館" },
                   { num: "按摩", label: "核心技術", sub: "專業認證師資" },
                   { num: "1:2", label: "小班教學", sub: "技術培訓師生比" },
                   { num: "❤️", label: "每次課後", sub: "自製點心暖心招待" },

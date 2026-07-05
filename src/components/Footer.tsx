@@ -60,7 +60,7 @@ export default function Footer() {
               <p className="text-sm text-cream/50 tracking-widest">Warm Jar</p>
             </div>
             <p className="text-sm leading-relaxed text-cream/70 mb-6">
-              屏東在地的按摩養生館，提供溫罐舒壓、筋膜刀、油壓等專業舒壓服務，以自製點心湯品暖心款待每一位客人。
+              屏東在地的按摩Spa館，提供溫罐舒壓、筋膜刀、油壓等專業舒壓服務，以自製點心湯品暖心款待每一位客人。
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export default function Footer() {
 
         <div className="mt-14 pt-8 border-t border-cream/10 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-cream/40">
-            © {new Date().getFullYear()} 溫罐子養生館 Warm Jar. 版權所有。
+            © {new Date().getFullYear()} 溫罐子Spa館 Warm Jar. 版權所有。
           </p>
           <div className="flex items-center gap-4 text-xs text-cream/30">
             <span>本服務為民俗調理，非醫療行為。</span>

@@ -2,10 +2,10 @@ export function LocalBusinessJsonLd() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "HealthAndBeautyBusiness",
-    name: "溫罐子養生館",
+    name: "溫罐子Spa館",
     alternateName: "Warm Jar",
     description:
-      "屏東在地按摩養生館，提供溫罐舒壓、筋膜刀、油壓、美胸按摩等專業舒壓服務，自製點心湯品暖心款待。",
+      "屏東在地按摩Spa館，提供溫罐舒壓、筋膜刀、油壓、美胸按摩等專業舒壓服務，自製點心湯品暖心款待。",
     url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.warmjar.com.tw",
     telephone: "0979050630",
     address: {
@@ -79,7 +79,7 @@ export function PersonJsonLd() {
     url: `${baseUrl}/founder`,
     worksFor: {
       "@type": "HealthAndBeautyBusiness",
-      name: "溫罐子養生館",
+      name: "溫罐子Spa館",
       url: baseUrl,
     },
   };

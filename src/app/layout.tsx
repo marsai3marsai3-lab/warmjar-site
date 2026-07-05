@@ -23,14 +23,14 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.warmjar.com.tw
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "溫罐子 | 屏東按摩養生館 – 屏東舒壓按摩推薦",
+    default: "溫罐子 | 屏東按摩Spa館 – 屏東舒壓按摩推薦",
     template: "%s | 屏東溫罐舒壓推薦 | 溫罐子",
   },
   description:
-    "溫罐子養生館位於屏東市，提供溫罐舒壓、筋膜刀、油壓、美胸按摩等專業舒壓服務。自製點心湯品，讓您在身心放鬆之餘享受暖心款待。歡迎來電或 LINE 預約。",
+    "溫罐子Spa館位於屏東市，提供溫罐舒壓、筋膜刀、油壓、美胸按摩等專業舒壓服務。自製點心湯品，讓您在身心放鬆之餘享受暖心款待。歡迎來電或 LINE 預約。",
   keywords: [
     "屏東按摩",
-    "屏東養生館",
+    "屏東Spa館",
     "屏東舒壓按摩",
     "屏東全身油壓",
     "屏東肩頸按摩",
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "zh_TW",
-    siteName: "溫罐子養生館",
-    title: "溫罐子 | 屏東按摩養生館",
+    siteName: "溫罐子Spa館",
+    title: "溫罐子 | 屏東按摩Spa館",
     description:
       "屏東市莊敬街 — 溫罐舒壓、筋膜刀、油壓、美胸按摩，附贈自製點心湯品。LINE @warmjar 立即預約。",
     images: [
@@ -51,13 +51,13 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "溫罐子養生館 – 屏東舒壓按摩",
+        alt: "溫罐子Spa館 – 屏東舒壓按摩",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "溫罐子 | 屏東按摩養生館",
+    title: "溫罐子 | 屏東按摩Spa館",
     description:
       "屏東市莊敬街 — 溫罐舒壓、筋膜刀、油壓、美胸按摩，附贈自製點心湯品。",
     images: ["/og-image.jpg"],

@@ -6,7 +6,7 @@ import { Phone, MapPin, Clock, MessageCircle } from "lucide-react";
 export const metadata: Metadata = {
   title: "聯絡我們 | 屏東按摩 溫罐子地址・電話・地圖",
   description:
-    "溫罐子養生館地址：屏東市莊敬街一段104號。電話：0979-050-630。營業時間：週一至週日 10:00–22:00。LINE：@warmjar。歡迎來電或到店詢問。",
+    "溫罐子Spa館地址：屏東市莊敬街一段104號。電話：0979-050-630。營業時間：週一至週日 10:00–22:00。LINE：@warmjar。歡迎來電或到店詢問。",
   alternates: { canonical: "/contact" },
 };
 
@@ -138,7 +138,7 @@ export default function ContactPage() {
                 </h2>
                 <div className="rounded-2xl overflow-hidden border border-cream-border shadow-sm aspect-[4/3] lg:aspect-auto lg:h-full min-h-[300px]">
                   <iframe
-                    title="溫罐子養生館位置"
+                    title="溫罐子Spa館位置"
                     src="https://www.google.com/maps?q=%E6%BA%AB%E7%BD%90%E5%AD%90Warm+jar,22.6841698,120.50254&hl=zh-TW&z=17&output=embed"
                     width="100%"
                     height="100%"
@@ -162,7 +162,7 @@ export default function ContactPage() {
             <p className="text-ink-muted text-sm leading-relaxed">
               本服務為民俗調理，非醫療行為。如有身體不適，請先諮詢醫師。
               <br />
-              溫罐子養生館保留調整營業時間之權利，最新資訊請以 LINE 官方帳號公告為準。
+              溫罐子Spa館保留調整營業時間之權利，最新資訊請以 LINE 官方帳號公告為準。
             </p>
           </div>
         </section>

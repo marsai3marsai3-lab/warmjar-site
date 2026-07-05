@@ -16,9 +16,9 @@ import {
 import { FacialMassagePngIcon, CuppingPngIcon, FasciaPngIcon, OilMassagePngIcon, SportsMassagePngIcon, StretchPngIcon, AcupressurePngIcon, BreastMassagePngIcon, CoursePngIcon } from "@/components/ServiceIcons";
 
 export const metadata: Metadata = {
-  title: "屏東按摩養生館 – 溫罐舒壓・筋膜刀・油壓 | 溫罐子",
+  title: "屏東按摩Spa館 – 溫罐舒壓・筋膜刀・油壓 | 溫罐子",
   description:
-    "溫罐子屏東養生館，提供屏東按摩、溫罐舒壓、全身油壓、肩頸按摩、筋膜刀等專業放鬆按摩服務。自製點心湯品，讓您完整放鬆身心。LINE @warmjar 立即預約，體驗屏東按摩推薦首選。",
+    "溫罐子屏東Spa館，提供屏東按摩、溫罐舒壓、全身油壓、肩頸按摩、筋膜刀等專業放鬆按摩服務。自製點心湯品，讓您完整放鬆身心。LINE @warmjar 立即預約，體驗屏東按摩推薦首選。",
   alternates: { canonical: "/" },
 };
 
@@ -421,7 +421,7 @@ export default function HomePage() {
                   來訪溫罐子
                 </h2>
                 <p className="text-ink-muted leading-relaxed">
-                  溫罐子養生館位於<strong>屏東市</strong>，提供
+                  溫罐子Spa館位於<strong>屏東市</strong>，提供
                   <strong>屏東按摩</strong>、<strong>屏東舒壓</strong>、溫罐舒壓、筋膜刀、全身油壓等專業服務。
                   歡迎預約，讓每一次造訪都成為真正的放鬆體驗。
                 </p>
@@ -452,7 +452,7 @@ export default function HomePage() {
               {/* 右：地圖 */}
               <div className="lg:w-3/5 w-full rounded-2xl overflow-hidden shadow-md border border-sand/30">
                 <iframe
-                  title="溫罐子養生館地圖 – 屏東按摩"
+                  title="溫罐子Spa館地圖 – 屏東按摩"
                   src="https://maps.google.com/maps?q=22.6841698,120.50254&z=16&output=embed"
                   width="100%"
                   height="360"

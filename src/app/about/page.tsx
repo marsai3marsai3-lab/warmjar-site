@@ -5,9 +5,9 @@ import Link from "next/link";
 import { Heart, Leaf, Users, ChevronRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "關於我們 | 屏東養生館 溫罐子理念與故事",
+  title: "關於我們 | 屏東Spa館 溫罐子理念與故事",
   description:
-    "溫罐子養生館創立於屏東，我們相信每個人都值得一個真正放鬆的空間。了解我們的服務理念、溫馨環境，以及對每位客人用心款待的承諾。",
+    "溫罐子Spa館創立於屏東，我們相信每個人都值得一個真正放鬆的空間。了解我們的服務理念、溫馨環境，以及對每位客人用心款待的承諾。",
   alternates: { canonical: "/about" },
 };
 
@@ -44,7 +44,7 @@ export default function AboutPage() {
               關於溫罐子
             </h1>
             <p className="text-ink-muted text-lg leading-relaxed">
-              我們是一間位於屏東市的按摩養生館，相信每個人都需要一個真正放鬆的空間——
+              我們是一間位於屏東市的按摩Spa館，相信每個人都需要一個真正放鬆的空間——
               不只是身體，也是心靈。
             </p>
           </div>
