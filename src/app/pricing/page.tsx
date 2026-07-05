@@ -198,7 +198,7 @@ export default function PricingPage() {
                 <div className="flex items-start gap-2 bg-white/15 rounded-xl px-4 py-3 mb-4">
                   <span className="text-cream/80 mt-0.5 shrink-0">💚</span>
                   <p className="text-cream/90 text-sm leading-relaxed">
-                    加入官方 LINE 帳號成為會員，即可享有新客體驗價
+                    加入官方 LINE 帳號成為會員(免費)，即可享有新客體驗價
                   </p>
                 </div>
                 <div className="bg-white/15 rounded-xl px-5 py-4 text-center">
