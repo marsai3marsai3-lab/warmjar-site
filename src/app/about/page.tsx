@@ -78,7 +78,28 @@ export default function AboutPage() {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex gap-4">
+                <div className="w-1/3 flex flex-col gap-4">
+                  <div className="aspect-square rounded-2xl overflow-hidden relative">
+                    <Image
+                      src="/關於我們6.png"
+                      alt="溫罐子 Warm Jar"
+                      fill
+                      className="object-cover"
+                      sizes="(min-width: 1024px) 12.5vw, 25vw"
+                    />
+                  </div>
+                  <div className="aspect-square rounded-2xl overflow-hidden relative">
+                    <Image
+                      src="/關於我們5.jpg"
+                      alt="溫罐子店面"
+                      fill
+                      className="object-cover"
+                      sizes="(min-width: 1024px) 12.5vw, 25vw"
+                    />
+                  </div>
+                </div>
+                <div className="w-2/3 grid grid-cols-2 gap-4">
                 <div className="aspect-square rounded-2xl overflow-hidden relative">
                   <Image
                     src="/關於我們1.jpg"
@@ -111,9 +132,6 @@ export default function AboutPage() {
                     className="object-cover"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="font-heading text-white font-medium">自製點心</p>
-                  </div>
                 </div>
                 <div className="aspect-square rounded-2xl overflow-hidden relative mt-8">
                   <Image
@@ -126,6 +144,7 @@ export default function AboutPage() {
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                     <p className="font-heading text-white font-medium">身心舒壓</p>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
