@@ -58,7 +58,7 @@ export default function FounderPage() {
                     src="/創辦人.jpg"
                     alt="萍萍老師"
                     fill
-                    className="object-cover"
+                    className="object-cover object-top"
                     sizes="256px"
                   />
                 </div>
