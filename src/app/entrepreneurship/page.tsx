@@ -51,24 +51,29 @@ const skills = [
 
 const reasons = [
   {
-    icon: "📈",
-    title: "養生市場持續成長",
-    desc: "台灣按摩養生產業年產值龐大，消費者對舒壓放鬆需求持續增加，市場進入門檻低但潛力大。",
-  },
-  {
     icon: "💼",
     title: "低成本可彈性創業",
     desc: "一技在身即可上路，不需要大型門市。可先以工作室或到府服務起步，隨客源成長再擴大規模。",
   },
   {
-    icon: "🔁",
-    title: "高回購率穩定收入",
-    desc: "舒壓服務黏著度極高，滿意的客人通常每月固定回診，形成穩定的月收入基礎。",
+    icon: "🏡",
+    title: "不用開店，學了馬上用在家裡",
+    desc: "養生課不是為了讓你創業，是讓你回家就能用。像是怎麼幫爸媽解緩疼痛、怎麼調整自己的晚餐讓血糖不飆、怎麼用簡單的伸展改善久坐。這些都是當天學、當晚就能試的小方法。",
   },
   {
     icon: "🕐",
     title: "時間自主彈性",
     desc: "自己決定營業時間與接案量，兼顧生活品質，特別適合想擺脫朝九晚五的人。",
+  },
+  {
+    icon: "📈",
+    title: "養生市場持續成長",
+    desc: "台灣按摩養生產業年產值龐大，消費者對舒壓放鬆需求持續增加，市場進入門檻低但潛力大。",
+  },
+  {
+    icon: "🔁",
+    title: "高回購率穩定收入",
+    desc: "舒壓服務黏著度極高，滿意的客人通常每月固定回診，形成穩定的月收入基礎。",
   },
   {
     icon: "🧓",
@@ -84,11 +89,6 @@ const reasons = [
     icon: "🌐",
     title: "養生市場大到6.8兆美元，代表資訊很亂",
     desc: "全球養生經濟2024年達到6.8兆美元，而且還在快速長大。東西越多，話術越多。先學會看成分、看體質差異，你買東西時會多一個判斷力，不容易被「限時」「專利」牽著走。",
-  },
-  {
-    icon: "🏡",
-    title: "不用開店，學了馬上用在家裡",
-    desc: "養生課不是為了讓你創業，是讓你回家就能用。像是怎麼幫爸媽解緩疼痛、怎麼調整自己的晚餐讓血糖不飆、怎麼用簡單的伸展改善久坐。這些都是當天學、當晚就能試的小方法。",
   },
   {
     icon: "🏢",
@@ -182,7 +182,7 @@ export default function EntrepreneurshipPage() {
               </h2>
               <p className="text-ink-muted">不容易被AI取代、真正的技術、人與人之間的溫暖、高回購、時間自主——是許多人轉換跑道的最佳選擇</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {reasons.map((r) => (
                 <div key={r.title} className="bg-white rounded-2xl p-6 border border-cream-border shadow-sm hover:shadow-md transition">
                   <div className="text-3xl mb-4">{r.icon}</div>
