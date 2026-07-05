@@ -94,6 +94,7 @@ const classFeatures = [
   { icon: "🙌", title: "手把手教學", desc: "講師全程親自示範，手法即時糾正，不走彎路" },
   { icon: "📋", title: "系統化課程", desc: "從理論到實操，有完整的學習脈絡與進度安排" },
   { icon: "💳", title: "線上課程折抵", desc: "已購買對應線上課程者，學費可全額折抵" },
+  { icon: "📜", title: "民俗調理", desc: "本技術為民俗調理，非醫療行為" },
 ];
 
 export default function CoursesPage() {
@@ -136,7 +137,7 @@ export default function CoursesPage() {
         {/* 小班制特色 */}
         <section className="py-14 bg-cream border-b border-cream-border">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {classFeatures.map((f) => (
                 <div key={f.title} className="text-center p-4">
                   <div className="text-3xl mb-3">{f.icon}</div>
