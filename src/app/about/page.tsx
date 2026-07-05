@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -78,28 +79,52 @@ export default function AboutPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-terracotta/20 to-cream-dark flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="text-5xl mb-3">🏠</div>
-                    <p className="font-heading text-ink font-medium">溫馨空間</p>
+                <div className="aspect-square rounded-2xl overflow-hidden relative">
+                  <Image
+                    src="/關於我們1.jpg"
+                    alt="溫馨空間"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="font-heading text-white font-medium">溫馨空間</p>
                   </div>
                 </div>
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-olive/20 to-cream-dark flex items-center justify-center mt-8">
-                  <div className="text-center p-6">
-                    <div className="text-5xl mb-3">✨</div>
-                    <p className="font-heading text-ink font-medium">專業師傅</p>
+                <div className="aspect-square rounded-2xl overflow-hidden relative mt-8">
+                  <Image
+                    src="/關於我們2.jpg"
+                    alt="專業師傅"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="font-heading text-white font-medium">專業師傅</p>
                   </div>
                 </div>
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-gold/20 to-cream-dark flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="text-5xl mb-3">🍵</div>
-                    <p className="font-heading text-ink font-medium">自製點心</p>
+                <div className="aspect-square rounded-2xl overflow-hidden relative">
+                  <Image
+                    src="/關於我們3.jpg"
+                    alt="自製點心"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="font-heading text-white font-medium">自製點心</p>
                   </div>
                 </div>
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-terracotta/15 to-olive/15 flex items-center justify-center mt-8">
-                  <div className="text-center p-6">
-                    <div className="text-5xl mb-3">💆</div>
-                    <p className="font-heading text-ink font-medium">身心舒壓</p>
+                <div className="aspect-square rounded-2xl overflow-hidden relative mt-8">
+                  <Image
+                    src="/關於我們4.jpg"
+                    alt="身心舒壓"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 25vw, 50vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="font-heading text-white font-medium">身心舒壓</p>
                   </div>
                 </div>
               </div>
