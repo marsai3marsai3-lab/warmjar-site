@@ -141,9 +141,6 @@ export default function AboutPage() {
                     className="object-cover"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="font-heading text-white font-medium">身心舒壓</p>
-                  </div>
                 </div>
                 </div>
               </div>
