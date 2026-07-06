@@ -108,9 +108,6 @@ export default function AboutPage() {
                     className="object-cover"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="font-heading text-white font-medium">溫馨空間</p>
-                  </div>
                 </div>
                 <div className="aspect-square rounded-2xl overflow-hidden relative mt-8">
                   <Image
@@ -120,9 +117,6 @@ export default function AboutPage() {
                     className="object-cover"
                     sizes="(min-width: 1024px) 25vw, 50vw"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="font-heading text-white font-medium">專業師傅</p>
-                  </div>
                 </div>
                 <div className="aspect-square rounded-2xl overflow-hidden relative">
                   <Image

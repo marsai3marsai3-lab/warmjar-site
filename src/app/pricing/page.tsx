@@ -223,7 +223,7 @@ export default function PricingPage() {
                 </span>
                 <h3 className="font-heading text-xl font-semibold mb-1">生日當月 85 折</h3>
                 <p className="text-ink/70 text-sm mb-5">
-                  壽星限定！生日當月到訪，全品項享 85 折優惠
+                  壽星限定！生日當月到訪(不限次數)，全品項享 85 折優惠
                 </p>
                 <div className="bg-white/30 rounded-xl px-5 py-4 text-center mb-4">
                   <div className="font-heading text-5xl font-bold text-ink">
