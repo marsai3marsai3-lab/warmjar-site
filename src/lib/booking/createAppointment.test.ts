@@ -47,4 +47,60 @@ describe("createAppointmentSafe", () => {
       httpStatus: 409,
     });
   });
+
+  it("14) 併發 GiST 索引寫入偵測為 deadlock（40P01）而非乾淨的 23P01 時，重試一次後成功應視為建立成功", async () => {
+    let calls = 0;
+    const repo: AppointmentRepository = {
+      async insertAppointment() {
+        calls += 1;
+        if (calls === 1) {
+          throw { code: "40P01", message: "deadlock detected" };
+        }
+        return { id: "ap_retry_success" };
+      },
+    };
+
+    const result = await createAppointmentSafe(repo, {
+      customerId: "c1",
+      staffId: "s1",
+      date: "2026-07-10",
+      startTime: "10:00",
+      endTime: "11:00",
+    });
+
+    expect(calls).toBe(2);
+    expect(result).toEqual({ ok: true, appointmentId: "ap_retry_success" });
+  });
+
+  it("15) deadlock 重試後仍衝突（23P01）應回傳友善 409，而不是重試第二次", async () => {
+    let calls = 0;
+    const repo: AppointmentRepository = {
+      async insertAppointment() {
+        calls += 1;
+        if (calls === 1) {
+          throw { code: "40P01", message: "deadlock detected" };
+        }
+        throw {
+          code: "23P01",
+          message: "conflicting key value violates exclusion constraint",
+        };
+      },
+    };
+
+    const result = await createAppointmentSafe(repo, {
+      customerId: "c1",
+      staffId: "s1",
+      date: "2026-07-10",
+      startTime: "10:00",
+      endTime: "11:00",
+    });
+
+    expect(calls).toBe(2);
+    expect(result).toEqual({
+      ok: false,
+      code: "SLOT_ALREADY_BOOKED",
+      message: "此時段剛被預約，請重新選擇",
+      httpStatus: 409,
+    });
+  });
 });

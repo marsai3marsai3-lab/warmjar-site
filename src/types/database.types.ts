@@ -1,1 +1,1762 @@
-{"types":"export type Json =\n  | string\n  | number\n  | boolean\n  | null\n  | { [key: string]: Json | undefined }\n  | Json[]\n\nexport type Database = {\n  // Allows to automatically instantiate createClient with right options\n  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)\n  __InternalSupabase: {\n    PostgrestVersion: \"14.5\"\n  }\n  public: {\n    Tables: {\n      appointment_status_history: {\n        Row: {\n          appointment_id: string\n          changed_at: string\n          changed_by: string | null\n          id: string\n          new_status: string\n          old_status: string | null\n          reason: string | null\n        }\n        Insert: {\n          appointment_id: string\n          changed_at?: string\n          changed_by?: string | null\n          id?: string\n          new_status: string\n          old_status?: string | null\n          reason?: string | null\n        }\n        Update: {\n          appointment_id?: string\n          changed_at?: string\n          changed_by?: string | null\n          id?: string\n          new_status?: string\n          old_status?: string | null\n          reason?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"appointment_status_history_appointment_id_fkey\"\n            columns: [\"appointment_id\"]\n            isOneToOne: false\n            referencedRelation: \"appointments\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"appointment_status_history_changed_by_fkey\"\n            columns: [\"changed_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      appointments: {\n        Row: {\n          appointment_date: string\n          cancel_reason: string | null\n          cancelled_at: string | null\n          created_at: string\n          created_by: string | null\n          customer_id: string\n          customer_note: string | null\n          end_at: string | null\n          end_time: string\n          id: string\n          internal_note: string | null\n          room_id: string | null\n          service_variant_id: string\n          source: string\n          staff_id: string | null\n          start_at: string | null\n          start_time: string\n          status: string\n          updated_at: string\n        }\n        Insert: {\n          appointment_date: string\n          cancel_reason?: string | null\n          cancelled_at?: string | null\n          created_at?: string\n          created_by?: string | null\n          customer_id: string\n          customer_note?: string | null\n          end_at?: string | null\n          end_time: string\n          id?: string\n          internal_note?: string | null\n          room_id?: string | null\n          service_variant_id: string\n          source: string\n          staff_id?: string | null\n          start_at?: string | null\n          start_time: string\n          status?: string\n          updated_at?: string\n        }\n        Update: {\n          appointment_date?: string\n          cancel_reason?: string | null\n          cancelled_at?: string | null\n          created_at?: string\n          created_by?: string | null\n          customer_id?: string\n          customer_note?: string | null\n          end_at?: string | null\n          end_time?: string\n          id?: string\n          internal_note?: string | null\n          room_id?: string | null\n          service_variant_id?: string\n          source?: string\n          staff_id?: string | null\n          start_at?: string | null\n          start_time?: string\n          status?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"appointments_created_by_fkey\"\n            columns: [\"created_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"appointments_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"appointments_room_id_fkey\"\n            columns: [\"room_id\"]\n            isOneToOne: false\n            referencedRelation: \"rooms\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"appointments_service_variant_id_fkey\"\n            columns: [\"service_variant_id\"]\n            isOneToOne: false\n            referencedRelation: \"service_variants\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"appointments_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      audit_logs: {\n        Row: {\n          action: string\n          actor_id: string | null\n          after: Json | null\n          before: Json | null\n          created_at: string\n          id: string\n          target_id: string | null\n          target_table: string\n        }\n        Insert: {\n          action: string\n          actor_id?: string | null\n          after?: Json | null\n          before?: Json | null\n          created_at?: string\n          id?: string\n          target_id?: string | null\n          target_table: string\n        }\n        Update: {\n          action?: string\n          actor_id?: string | null\n          after?: Json | null\n          before?: Json | null\n          created_at?: string\n          id?: string\n          target_id?: string | null\n          target_table?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"audit_logs_actor_id_fkey\"\n            columns: [\"actor_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      business_hours: {\n        Row: {\n          close_time: string | null\n          is_closed: boolean\n          open_time: string | null\n          weekday: number\n        }\n        Insert: {\n          close_time?: string | null\n          is_closed?: boolean\n          open_time?: string | null\n          weekday: number\n        }\n        Update: {\n          close_time?: string | null\n          is_closed?: boolean\n          open_time?: string | null\n          weekday?: number\n        }\n        Relationships: []\n      }\n      checkout_items: {\n        Row: {\n          appointment_id: string | null\n          checkout_id: string\n          created_at: string\n          face_value: number\n          id: string\n          item_type: string\n          paid_amount: number\n          quantity: number\n          service_variant_id: string | null\n          staff_id: string | null\n        }\n        Insert: {\n          appointment_id?: string | null\n          checkout_id: string\n          created_at?: string\n          face_value: number\n          id?: string\n          item_type?: string\n          paid_amount: number\n          quantity?: number\n          service_variant_id?: string | null\n          staff_id?: string | null\n        }\n        Update: {\n          appointment_id?: string | null\n          checkout_id?: string\n          created_at?: string\n          face_value?: number\n          id?: string\n          item_type?: string\n          paid_amount?: number\n          quantity?: number\n          service_variant_id?: string | null\n          staff_id?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"checkout_items_appointment_id_fkey\"\n            columns: [\"appointment_id\"]\n            isOneToOne: false\n            referencedRelation: \"appointments\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"checkout_items_checkout_id_fkey\"\n            columns: [\"checkout_id\"]\n            isOneToOne: false\n            referencedRelation: \"checkouts\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"checkout_items_service_variant_id_fkey\"\n            columns: [\"service_variant_id\"]\n            isOneToOne: false\n            referencedRelation: \"service_variants\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"checkout_items_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      checkouts: {\n        Row: {\n          checked_out_by: string | null\n          checkout_at: string\n          created_at: string\n          customer_id: string\n          deposit_applied: number\n          discount_amount: number\n          ecpay_trade_no: string | null\n          id: string\n          invoice_status: string\n          payment_method: string\n          status: string\n          stored_value_bonus_used: number\n          stored_value_principal_used: number\n          subtotal_face_value: number\n          total_paid_amount: number\n          void_reason: string | null\n        }\n        Insert: {\n          checked_out_by?: string | null\n          checkout_at?: string\n          created_at?: string\n          customer_id: string\n          deposit_applied?: number\n          discount_amount?: number\n          ecpay_trade_no?: string | null\n          id?: string\n          invoice_status?: string\n          payment_method: string\n          status?: string\n          stored_value_bonus_used?: number\n          stored_value_principal_used?: number\n          subtotal_face_value: number\n          total_paid_amount: number\n          void_reason?: string | null\n        }\n        Update: {\n          checked_out_by?: string | null\n          checkout_at?: string\n          created_at?: string\n          customer_id?: string\n          deposit_applied?: number\n          discount_amount?: number\n          ecpay_trade_no?: string | null\n          id?: string\n          invoice_status?: string\n          payment_method?: string\n          status?: string\n          stored_value_bonus_used?: number\n          stored_value_principal_used?: number\n          subtotal_face_value?: number\n          total_paid_amount?: number\n          void_reason?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"checkouts_checked_out_by_fkey\"\n            columns: [\"checked_out_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"checkouts_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      commission_records: {\n        Row: {\n          checkout_item_id: string\n          commission_amount: number\n          commission_rate: number\n          created_at: string\n          id: string\n          settled: boolean\n          settled_at: string | null\n          settlement_batch_id: string | null\n          staff_id: string\n        }\n        Insert: {\n          checkout_item_id: string\n          commission_amount: number\n          commission_rate: number\n          created_at?: string\n          id?: string\n          settled?: boolean\n          settled_at?: string | null\n          settlement_batch_id?: string | null\n          staff_id: string\n        }\n        Update: {\n          checkout_item_id?: string\n          commission_amount?: number\n          commission_rate?: number\n          created_at?: string\n          id?: string\n          settled?: boolean\n          settled_at?: string | null\n          settlement_batch_id?: string | null\n          staff_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"commission_records_checkout_item_id_fkey\"\n            columns: [\"checkout_item_id\"]\n            isOneToOne: true\n            referencedRelation: \"checkout_items\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"commission_records_settlement_batch_id_fkey\"\n            columns: [\"settlement_batch_id\"]\n            isOneToOne: false\n            referencedRelation: \"commission_settlement_batches\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"commission_records_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      commission_settlement_batches: {\n        Row: {\n          confirmed_at: string | null\n          created_at: string\n          id: string\n          paid_at: string | null\n          period_end: string\n          period_start: string\n          staff_id: string\n          status: string\n          total_commission_amount: number\n        }\n        Insert: {\n          confirmed_at?: string | null\n          created_at?: string\n          id?: string\n          paid_at?: string | null\n          period_end: string\n          period_start: string\n          staff_id: string\n          status?: string\n          total_commission_amount?: number\n        }\n        Update: {\n          confirmed_at?: string | null\n          created_at?: string\n          id?: string\n          paid_at?: string | null\n          period_end?: string\n          period_start?: string\n          staff_id?: string\n          status?: string\n          total_commission_amount?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"commission_settlement_batches_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      coupon_redemptions: {\n        Row: {\n          checkout_id: string | null\n          coupon_id: string\n          customer_id: string\n          id: string\n          redeemed_at: string\n        }\n        Insert: {\n          checkout_id?: string | null\n          coupon_id: string\n          customer_id: string\n          id?: string\n          redeemed_at?: string\n        }\n        Update: {\n          checkout_id?: string | null\n          coupon_id?: string\n          customer_id?: string\n          id?: string\n          redeemed_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"coupon_redemptions_checkout_id_fkey\"\n            columns: [\"checkout_id\"]\n            isOneToOne: false\n            referencedRelation: \"checkouts\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"coupon_redemptions_coupon_id_fkey\"\n            columns: [\"coupon_id\"]\n            isOneToOne: false\n            referencedRelation: \"coupons\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"coupon_redemptions_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      coupons: {\n        Row: {\n          code: string\n          created_at: string\n          discount_type: string\n          discount_value: number\n          id: string\n          is_active: boolean\n          max_discount_amount: number | null\n          min_spend: number | null\n          name: string\n          usage_limit_per_customer: number\n          usage_limit_total: number | null\n          valid_from: string | null\n          valid_until: string | null\n        }\n        Insert: {\n          code: string\n          created_at?: string\n          discount_type: string\n          discount_value: number\n          id?: string\n          is_active?: boolean\n          max_discount_amount?: number | null\n          min_spend?: number | null\n          name: string\n          usage_limit_per_customer?: number\n          usage_limit_total?: number | null\n          valid_from?: string | null\n          valid_until?: string | null\n        }\n        Update: {\n          code?: string\n          created_at?: string\n          discount_type?: string\n          discount_value?: number\n          id?: string\n          is_active?: boolean\n          max_discount_amount?: number | null\n          min_spend?: number | null\n          name?: string\n          usage_limit_per_customer?: number\n          usage_limit_total?: number | null\n          valid_from?: string | null\n          valid_until?: string | null\n        }\n        Relationships: []\n      }\n      customer_tags: {\n        Row: {\n          created_at: string\n          customer_id: string\n          tag_id: string\n        }\n        Insert: {\n          created_at?: string\n          customer_id: string\n          tag_id: string\n        }\n        Update: {\n          created_at?: string\n          customer_id?: string\n          tag_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"customer_tags_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"customer_tags_tag_id_fkey\"\n            columns: [\"tag_id\"]\n            isOneToOne: false\n            referencedRelation: \"tags\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      customers: {\n        Row: {\n          birthday: string | null\n          churn_risk_score: number | null\n          created_at: string\n          email: string | null\n          gender: string | null\n          id: string\n          internal_note: string | null\n          last_visit_at: string | null\n          name: string\n          phone: string | null\n          profile_id: string | null\n          source: string | null\n          status: string\n          updated_at: string\n        }\n        Insert: {\n          birthday?: string | null\n          churn_risk_score?: number | null\n          created_at?: string\n          email?: string | null\n          gender?: string | null\n          id?: string\n          internal_note?: string | null\n          last_visit_at?: string | null\n          name: string\n          phone?: string | null\n          profile_id?: string | null\n          source?: string | null\n          status?: string\n          updated_at?: string\n        }\n        Update: {\n          birthday?: string | null\n          churn_risk_score?: number | null\n          created_at?: string\n          email?: string | null\n          gender?: string | null\n          id?: string\n          internal_note?: string | null\n          last_visit_at?: string | null\n          name?: string\n          phone?: string | null\n          profile_id?: string | null\n          source?: string | null\n          status?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"customers_profile_id_fkey\"\n            columns: [\"profile_id\"]\n            isOneToOne: true\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      deposit_records: {\n        Row: {\n          amount: number\n          appointment_id: string\n          created_at: string\n          ecpay_trade_no: string | null\n          id: string\n          note: string | null\n          paid_at: string | null\n          payment_method: string\n          refunded_at: string | null\n          status: string\n        }\n        Insert: {\n          amount: number\n          appointment_id: string\n          created_at?: string\n          ecpay_trade_no?: string | null\n          id?: string\n          note?: string | null\n          paid_at?: string | null\n          payment_method: string\n          refunded_at?: string | null\n          status?: string\n        }\n        Update: {\n          amount?: number\n          appointment_id?: string\n          created_at?: string\n          ecpay_trade_no?: string | null\n          id?: string\n          note?: string | null\n          paid_at?: string | null\n          payment_method?: string\n          refunded_at?: string | null\n          status?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"deposit_records_appointment_id_fkey\"\n            columns: [\"appointment_id\"]\n            isOneToOne: false\n            referencedRelation: \"appointments\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      holidays: {\n        Row: {\n          holiday_date: string\n          is_closed: boolean\n          reason: string | null\n        }\n        Insert: {\n          holiday_date: string\n          is_closed?: boolean\n          reason?: string | null\n        }\n        Update: {\n          holiday_date?: string\n          is_closed?: boolean\n          reason?: string | null\n        }\n        Relationships: []\n      }\n      loyalty_points_accounts: {\n        Row: {\n          balance: number\n          customer_id: string\n          updated_at: string\n        }\n        Insert: {\n          balance?: number\n          customer_id: string\n          updated_at?: string\n        }\n        Update: {\n          balance?: number\n          customer_id?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"loyalty_points_accounts_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: true\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      loyalty_points_transactions: {\n        Row: {\n          account_customer_id: string\n          created_at: string\n          delta: number\n          id: string\n          operator_id: string | null\n          reason: string\n          related_checkout_id: string | null\n        }\n        Insert: {\n          account_customer_id: string\n          created_at?: string\n          delta: number\n          id?: string\n          operator_id?: string | null\n          reason: string\n          related_checkout_id?: string | null\n        }\n        Update: {\n          account_customer_id?: string\n          created_at?: string\n          delta?: number\n          id?: string\n          operator_id?: string | null\n          reason?: string\n          related_checkout_id?: string | null\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"loyalty_points_transactions_account_customer_id_fkey\"\n            columns: [\"account_customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"loyalty_points_accounts\"\n            referencedColumns: [\"customer_id\"]\n          },\n          {\n            foreignKeyName: \"loyalty_points_transactions_operator_id_fkey\"\n            columns: [\"operator_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"loyalty_points_transactions_related_checkout_id_fkey\"\n            columns: [\"related_checkout_id\"]\n            isOneToOne: false\n            referencedRelation: \"checkouts\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      notification_logs: {\n        Row: {\n          channel: string\n          content_snapshot: string\n          customer_id: string\n          id: string\n          line_message_id: string | null\n          scheduled_notification_id: string | null\n          sent_at: string\n          status: string\n        }\n        Insert: {\n          channel: string\n          content_snapshot: string\n          customer_id: string\n          id?: string\n          line_message_id?: string | null\n          scheduled_notification_id?: string | null\n          sent_at?: string\n          status: string\n        }\n        Update: {\n          channel?: string\n          content_snapshot?: string\n          customer_id?: string\n          id?: string\n          line_message_id?: string | null\n          scheduled_notification_id?: string | null\n          sent_at?: string\n          status?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"notification_logs_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"notification_logs_scheduled_notification_id_fkey\"\n            columns: [\"scheduled_notification_id\"]\n            isOneToOne: false\n            referencedRelation: \"scheduled_notifications\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      profiles: {\n        Row: {\n          auth_user_id: string | null\n          avatar_url: string | null\n          created_at: string\n          display_name: string | null\n          id: string\n          is_active: boolean\n          line_user_id: string | null\n          phone: string | null\n          role: string\n        }\n        Insert: {\n          auth_user_id?: string | null\n          avatar_url?: string | null\n          created_at?: string\n          display_name?: string | null\n          id?: string\n          is_active?: boolean\n          line_user_id?: string | null\n          phone?: string | null\n          role: string\n        }\n        Update: {\n          auth_user_id?: string | null\n          avatar_url?: string | null\n          created_at?: string\n          display_name?: string | null\n          id?: string\n          is_active?: boolean\n          line_user_id?: string | null\n          phone?: string | null\n          role?: string\n        }\n        Relationships: []\n      }\n      referral_records: {\n        Row: {\n          created_at: string\n          id: string\n          match_status: string\n          matched_at: string | null\n          matched_by: string | null\n          referred_customer_id: string\n          referrer_customer_id: string | null\n          referrer_input_raw: string | null\n          reward_amount: number | null\n          reward_issued_at: string | null\n          reward_status: string\n          reward_type: string | null\n          source: string\n        }\n        Insert: {\n          created_at?: string\n          id?: string\n          match_status?: string\n          matched_at?: string | null\n          matched_by?: string | null\n          referred_customer_id: string\n          referrer_customer_id?: string | null\n          referrer_input_raw?: string | null\n          reward_amount?: number | null\n          reward_issued_at?: string | null\n          reward_status?: string\n          reward_type?: string | null\n          source: string\n        }\n        Update: {\n          created_at?: string\n          id?: string\n          match_status?: string\n          matched_at?: string | null\n          matched_by?: string | null\n          referred_customer_id?: string\n          referrer_customer_id?: string | null\n          referrer_input_raw?: string | null\n          reward_amount?: number | null\n          reward_issued_at?: string | null\n          reward_status?: string\n          reward_type?: string | null\n          source?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"referral_records_matched_by_fkey\"\n            columns: [\"matched_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"referral_records_referred_customer_id_fkey\"\n            columns: [\"referred_customer_id\"]\n            isOneToOne: true\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"referral_records_referrer_customer_id_fkey\"\n            columns: [\"referrer_customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      reminder_rules: {\n        Row: {\n          channel: string\n          created_at: string\n          id: string\n          is_active: boolean\n          message_template: string\n          name: string\n          offset_days: number\n          offset_hours: number\n          trigger_type: string\n        }\n        Insert: {\n          channel: string\n          created_at?: string\n          id?: string\n          is_active?: boolean\n          message_template: string\n          name: string\n          offset_days: number\n          offset_hours?: number\n          trigger_type: string\n        }\n        Update: {\n          channel?: string\n          created_at?: string\n          id?: string\n          is_active?: boolean\n          message_template?: string\n          name?: string\n          offset_days?: number\n          offset_hours?: number\n          trigger_type?: string\n        }\n        Relationships: []\n      }\n      revenue_records: {\n        Row: {\n          amount: number\n          customer_id: string | null\n          id: string\n          note: string | null\n          recorded_at: string\n          recorded_by: string | null\n          revenue_type: string\n          source_id: string\n          source_table: string\n        }\n        Insert: {\n          amount: number\n          customer_id?: string | null\n          id?: string\n          note?: string | null\n          recorded_at?: string\n          recorded_by?: string | null\n          revenue_type: string\n          source_id: string\n          source_table: string\n        }\n        Update: {\n          amount?: number\n          customer_id?: string | null\n          id?: string\n          note?: string | null\n          recorded_at?: string\n          recorded_by?: string | null\n          revenue_type?: string\n          source_id?: string\n          source_table?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"revenue_records_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"revenue_records_recorded_by_fkey\"\n            columns: [\"recorded_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      rooms: {\n        Row: {\n          capacity: number\n          created_at: string\n          id: string\n          is_active: boolean\n          name: string\n        }\n        Insert: {\n          capacity?: number\n          created_at?: string\n          id?: string\n          is_active?: boolean\n          name: string\n        }\n        Update: {\n          capacity?: number\n          created_at?: string\n          id?: string\n          is_active?: boolean\n          name?: string\n        }\n        Relationships: []\n      }\n      scheduled_notifications: {\n        Row: {\n          appointment_id: string | null\n          channel: string\n          created_at: string\n          customer_id: string\n          error_message: string | null\n          id: string\n          rule_id: string | null\n          scheduled_at: string\n          sent_at: string | null\n          status: string\n        }\n        Insert: {\n          appointment_id?: string | null\n          channel: string\n          created_at?: string\n          customer_id: string\n          error_message?: string | null\n          id?: string\n          rule_id?: string | null\n          scheduled_at: string\n          sent_at?: string | null\n          status?: string\n        }\n        Update: {\n          appointment_id?: string | null\n          channel?: string\n          created_at?: string\n          customer_id?: string\n          error_message?: string | null\n          id?: string\n          rule_id?: string | null\n          scheduled_at?: string\n          sent_at?: string | null\n          status?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"scheduled_notifications_appointment_id_fkey\"\n            columns: [\"appointment_id\"]\n            isOneToOne: false\n            referencedRelation: \"appointments\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"scheduled_notifications_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"scheduled_notifications_rule_id_fkey\"\n            columns: [\"rule_id\"]\n            isOneToOne: false\n            referencedRelation: \"reminder_rules\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      service_categories: {\n        Row: {\n          created_at: string\n          id: string\n          name: string\n          sort_order: number\n        }\n        Insert: {\n          created_at?: string\n          id?: string\n          name: string\n          sort_order?: number\n        }\n        Update: {\n          created_at?: string\n          id?: string\n          name?: string\n          sort_order?: number\n        }\n        Relationships: []\n      }\n      service_variants: {\n        Row: {\n          created_at: string\n          duration_minutes: number\n          face_value_price: number\n          id: string\n          is_active: boolean\n          name: string\n          service_id: string\n          sort_order: number\n        }\n        Insert: {\n          created_at?: string\n          duration_minutes: number\n          face_value_price: number\n          id?: string\n          is_active?: boolean\n          name: string\n          service_id: string\n          sort_order?: number\n        }\n        Update: {\n          created_at?: string\n          duration_minutes?: number\n          face_value_price?: number\n          id?: string\n          is_active?: boolean\n          name?: string\n          service_id?: string\n          sort_order?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"service_variants_service_id_fkey\"\n            columns: [\"service_id\"]\n            isOneToOne: false\n            referencedRelation: \"services\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      services: {\n        Row: {\n          category_id: string | null\n          compliance_reviewed: boolean\n          created_at: string\n          description: string | null\n          id: string\n          is_active: boolean\n          name: string\n          sort_order: number\n          updated_at: string\n        }\n        Insert: {\n          category_id?: string | null\n          compliance_reviewed?: boolean\n          created_at?: string\n          description?: string | null\n          id?: string\n          is_active?: boolean\n          name: string\n          sort_order?: number\n          updated_at?: string\n        }\n        Update: {\n          category_id?: string | null\n          compliance_reviewed?: boolean\n          created_at?: string\n          description?: string | null\n          id?: string\n          is_active?: boolean\n          name?: string\n          sort_order?: number\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"services_category_id_fkey\"\n            columns: [\"category_id\"]\n            isOneToOne: false\n            referencedRelation: \"service_categories\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      staff: {\n        Row: {\n          created_at: string\n          default_commission_rate: number\n          hire_date: string | null\n          id: string\n          name: string\n          phone: string | null\n          profile_id: string\n          status: string\n          updated_at: string\n        }\n        Insert: {\n          created_at?: string\n          default_commission_rate: number\n          hire_date?: string | null\n          id?: string\n          name: string\n          phone?: string | null\n          profile_id: string\n          status?: string\n          updated_at?: string\n        }\n        Update: {\n          created_at?: string\n          default_commission_rate?: number\n          hire_date?: string | null\n          id?: string\n          name?: string\n          phone?: string | null\n          profile_id?: string\n          status?: string\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"staff_profile_id_fkey\"\n            columns: [\"profile_id\"]\n            isOneToOne: true\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      staff_recurring_availability: {\n        Row: {\n          created_at: string\n          end_time: string\n          id: string\n          is_active: boolean\n          staff_id: string\n          start_time: string\n          weekday: number\n        }\n        Insert: {\n          created_at?: string\n          end_time: string\n          id?: string\n          is_active?: boolean\n          staff_id: string\n          start_time: string\n          weekday: number\n        }\n        Update: {\n          created_at?: string\n          end_time?: string\n          id?: string\n          is_active?: boolean\n          staff_id?: string\n          start_time?: string\n          weekday?: number\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"staff_recurring_availability_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      staff_schedules: {\n        Row: {\n          created_at: string\n          end_time: string | null\n          id: string\n          is_day_off: boolean\n          note: string | null\n          staff_id: string\n          start_time: string | null\n          work_date: string\n        }\n        Insert: {\n          created_at?: string\n          end_time?: string | null\n          id?: string\n          is_day_off?: boolean\n          note?: string | null\n          staff_id: string\n          start_time?: string | null\n          work_date: string\n        }\n        Update: {\n          created_at?: string\n          end_time?: string | null\n          id?: string\n          is_day_off?: boolean\n          note?: string | null\n          staff_id?: string\n          start_time?: string | null\n          work_date?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"staff_schedules_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      staff_service_skills: {\n        Row: {\n          can_perform: boolean\n          commission_rate_override: number | null\n          service_id: string\n          staff_id: string\n        }\n        Insert: {\n          can_perform?: boolean\n          commission_rate_override?: number | null\n          service_id: string\n          staff_id: string\n        }\n        Update: {\n          can_perform?: boolean\n          commission_rate_override?: number | null\n          service_id?: string\n          staff_id?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"staff_service_skills_service_id_fkey\"\n            columns: [\"service_id\"]\n            isOneToOne: false\n            referencedRelation: \"services\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"staff_service_skills_staff_id_fkey\"\n            columns: [\"staff_id\"]\n            isOneToOne: false\n            referencedRelation: \"staff\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      stored_value_accounts: {\n        Row: {\n          bonus_balance: number\n          customer_id: string\n          principal_balance: number\n          updated_at: string\n        }\n        Insert: {\n          bonus_balance?: number\n          customer_id: string\n          principal_balance?: number\n          updated_at?: string\n        }\n        Update: {\n          bonus_balance?: number\n          customer_id?: string\n          principal_balance?: number\n          updated_at?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"stored_value_accounts_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: true\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      stored_value_plans: {\n        Row: {\n          bonus_amount: number\n          created_at: string\n          id: string\n          is_active: boolean\n          name: string\n          principal_amount: number\n          sort_order: number\n          tier: string\n        }\n        Insert: {\n          bonus_amount?: number\n          created_at?: string\n          id?: string\n          is_active?: boolean\n          name: string\n          principal_amount: number\n          sort_order?: number\n          tier: string\n        }\n        Update: {\n          bonus_amount?: number\n          created_at?: string\n          id?: string\n          is_active?: boolean\n          name?: string\n          principal_amount?: number\n          sort_order?: number\n          tier?: string\n        }\n        Relationships: []\n      }\n      stored_value_topup_orders: {\n        Row: {\n          bonus_amount: number\n          created_at: string\n          customer_id: string\n          ecpay_trade_no: string | null\n          id: string\n          paid_at: string | null\n          payment_method: string\n          plan_id: string | null\n          principal_amount: number\n          status: string\n        }\n        Insert: {\n          bonus_amount: number\n          created_at?: string\n          customer_id: string\n          ecpay_trade_no?: string | null\n          id?: string\n          paid_at?: string | null\n          payment_method: string\n          plan_id?: string | null\n          principal_amount: number\n          status?: string\n        }\n        Update: {\n          bonus_amount?: number\n          created_at?: string\n          customer_id?: string\n          ecpay_trade_no?: string | null\n          id?: string\n          paid_at?: string | null\n          payment_method?: string\n          plan_id?: string | null\n          principal_amount?: number\n          status?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"stored_value_topup_orders_customer_id_fkey\"\n            columns: [\"customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"customers\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"stored_value_topup_orders_plan_id_fkey\"\n            columns: [\"plan_id\"]\n            isOneToOne: false\n            referencedRelation: \"stored_value_plans\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      stored_value_transactions: {\n        Row: {\n          account_customer_id: string\n          bonus_delta: number\n          created_at: string\n          id: string\n          note: string | null\n          operator_id: string | null\n          principal_delta: number\n          related_checkout_id: string | null\n          related_topup_order_id: string | null\n          type: string\n        }\n        Insert: {\n          account_customer_id: string\n          bonus_delta?: number\n          created_at?: string\n          id?: string\n          note?: string | null\n          operator_id?: string | null\n          principal_delta?: number\n          related_checkout_id?: string | null\n          related_topup_order_id?: string | null\n          type: string\n        }\n        Update: {\n          account_customer_id?: string\n          bonus_delta?: number\n          created_at?: string\n          id?: string\n          note?: string | null\n          operator_id?: string | null\n          principal_delta?: number\n          related_checkout_id?: string | null\n          related_topup_order_id?: string | null\n          type?: string\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"stored_value_transactions_account_customer_id_fkey\"\n            columns: [\"account_customer_id\"]\n            isOneToOne: false\n            referencedRelation: \"stored_value_accounts\"\n            referencedColumns: [\"customer_id\"]\n          },\n          {\n            foreignKeyName: \"stored_value_transactions_operator_id_fkey\"\n            columns: [\"operator_id\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"stored_value_transactions_related_checkout_id_fkey\"\n            columns: [\"related_checkout_id\"]\n            isOneToOne: false\n            referencedRelation: \"checkouts\"\n            referencedColumns: [\"id\"]\n          },\n          {\n            foreignKeyName: \"stored_value_transactions_related_topup_order_id_fkey\"\n            columns: [\"related_topup_order_id\"]\n            isOneToOne: false\n            referencedRelation: \"stored_value_topup_orders\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      system_settings: {\n        Row: {\n          key: string\n          updated_at: string\n          updated_by: string | null\n          value: Json\n        }\n        Insert: {\n          key: string\n          updated_at?: string\n          updated_by?: string | null\n          value: Json\n        }\n        Update: {\n          key?: string\n          updated_at?: string\n          updated_by?: string | null\n          value?: Json\n        }\n        Relationships: [\n          {\n            foreignKeyName: \"system_settings_updated_by_fkey\"\n            columns: [\"updated_by\"]\n            isOneToOne: false\n            referencedRelation: \"profiles\"\n            referencedColumns: [\"id\"]\n          },\n        ]\n      }\n      tags: {\n        Row: {\n          color: string | null\n          created_at: string\n          id: string\n          name: string\n        }\n        Insert: {\n          color?: string | null\n          created_at?: string\n          id?: string\n          name: string\n        }\n        Update: {\n          color?: string | null\n          created_at?: string\n          id?: string\n          name?: string\n        }\n        Relationships: []\n      }\n    }\n    Views: {\n      [_ in never]: never\n    }\n    Functions: {\n      [_ in never]: never\n    }\n    Enums: {\n      [_ in never]: never\n    }\n    CompositeTypes: {\n      [_ in never]: never\n    }\n  }\n}\n\ntype DatabaseWithoutInternals = Omit<Database, \"__InternalSupabase\">\n\ntype DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, \"public\">]\n\nexport type Tables<\n  DefaultSchemaTableNameOrOptions extends\n    | keyof (DefaultSchema[\"Tables\"] & DefaultSchema[\"Views\"])\n    | { schema: keyof DatabaseWithoutInternals },\n  TableName extends DefaultSchemaTableNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"] &\n        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Views\"])\n    : never = never,\n> = DefaultSchemaTableNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"] &\n      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Views\"])[TableName] extends {\n      Row: infer R\n    }\n    ? R\n    : never\n  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema[\"Tables\"] &\n        DefaultSchema[\"Views\"])\n    ? (DefaultSchema[\"Tables\"] &\n        DefaultSchema[\"Views\"])[DefaultSchemaTableNameOrOptions] extends {\n        Row: infer R\n      }\n      ? R\n      : never\n    : never\n\nexport type TablesInsert<\n  DefaultSchemaTableNameOrOptions extends\n    | keyof DefaultSchema[\"Tables\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  TableName extends DefaultSchemaTableNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"]\n    : never = never,\n> = DefaultSchemaTableNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"][TableName] extends {\n      Insert: infer I\n    }\n    ? I\n    : never\n  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema[\"Tables\"]\n    ? DefaultSchema[\"Tables\"][DefaultSchemaTableNameOrOptions] extends {\n        Insert: infer I\n      }\n      ? I\n      : never\n    : never\n\nexport type TablesUpdate<\n  DefaultSchemaTableNameOrOptions extends\n    | keyof DefaultSchema[\"Tables\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  TableName extends DefaultSchemaTableNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"]\n    : never = never,\n> = DefaultSchemaTableNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions[\"schema\"]][\"Tables\"][TableName] extends {\n      Update: infer U\n    }\n    ? U\n    : never\n  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema[\"Tables\"]\n    ? DefaultSchema[\"Tables\"][DefaultSchemaTableNameOrOptions] extends {\n        Update: infer U\n      }\n      ? U\n      : never\n    : never\n\nexport type Enums<\n  DefaultSchemaEnumNameOrOptions extends\n    | keyof DefaultSchema[\"Enums\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  EnumName extends DefaultSchemaEnumNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions[\"schema\"]][\"Enums\"]\n    : never = never,\n> = DefaultSchemaEnumNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions[\"schema\"]][\"Enums\"][EnumName]\n  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema[\"Enums\"]\n    ? DefaultSchema[\"Enums\"][DefaultSchemaEnumNameOrOptions]\n    : never\n\nexport type CompositeTypes<\n  PublicCompositeTypeNameOrOptions extends\n    | keyof DefaultSchema[\"CompositeTypes\"]\n    | { schema: keyof DatabaseWithoutInternals },\n  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals\n  }\n    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions[\"schema\"]][\"CompositeTypes\"]\n    : never = never,\n> = PublicCompositeTypeNameOrOptions extends {\n  schema: keyof DatabaseWithoutInternals\n}\n  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions[\"schema\"]][\"CompositeTypes\"][CompositeTypeName]\n  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema[\"CompositeTypes\"]\n    ? DefaultSchema[\"CompositeTypes\"][PublicCompositeTypeNameOrOptions]\n    : never\n\nexport const Constants = {\n  public: {\n    Enums: {},\n  },\n} as const\n"}
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      appointment_status_history: {
+        Row: {
+          appointment_id: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_status: string
+          old_status: string | null
+          reason: string | null
+        }
+        Insert: {
+          appointment_id: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status: string
+          old_status?: string | null
+          reason?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status?: string
+          old_status?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_status_history_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          appointment_date: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          customer_note: string | null
+          end_at: string | null
+          end_time: string
+          expires_at: string | null
+          id: string
+          internal_note: string | null
+          room_id: string | null
+          service_variant_id: string
+          source: string
+          staff_id: string | null
+          start_at: string | null
+          start_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          customer_note?: string | null
+          end_at?: string | null
+          end_time: string
+          expires_at?: string | null
+          id?: string
+          internal_note?: string | null
+          room_id?: string | null
+          service_variant_id: string
+          source: string
+          staff_id?: string | null
+          start_at?: string | null
+          start_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          customer_note?: string | null
+          end_at?: string | null
+          end_time?: string
+          expires_at?: string | null
+          id?: string
+          internal_note?: string | null
+          room_id?: string | null
+          service_variant_id?: string
+          source?: string
+          staff_id?: string | null
+          start_at?: string | null
+          start_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_variant_id_fkey"
+            columns: ["service_variant_id"]
+            isOneToOne: false
+            referencedRelation: "service_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          target_id: string | null
+          target_table: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          target_table: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          target_id?: string | null
+          target_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_hours: {
+        Row: {
+          close_time: string | null
+          is_closed: boolean
+          open_time: string | null
+          weekday: number
+        }
+        Insert: {
+          close_time?: string | null
+          is_closed?: boolean
+          open_time?: string | null
+          weekday: number
+        }
+        Update: {
+          close_time?: string | null
+          is_closed?: boolean
+          open_time?: string | null
+          weekday?: number
+        }
+        Relationships: []
+      }
+      checkout_items: {
+        Row: {
+          appointment_id: string | null
+          checkout_id: string
+          created_at: string
+          face_value: number
+          id: string
+          item_type: string
+          paid_amount: number
+          quantity: number
+          service_variant_id: string | null
+          staff_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          checkout_id: string
+          created_at?: string
+          face_value: number
+          id?: string
+          item_type?: string
+          paid_amount: number
+          quantity?: number
+          service_variant_id?: string | null
+          staff_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          checkout_id?: string
+          created_at?: string
+          face_value?: number
+          id?: string
+          item_type?: string
+          paid_amount?: number
+          quantity?: number
+          service_variant_id?: string | null
+          staff_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_items_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_items_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_items_service_variant_id_fkey"
+            columns: ["service_variant_id"]
+            isOneToOne: false
+            referencedRelation: "service_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_items_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkouts: {
+        Row: {
+          checked_out_by: string | null
+          checkout_at: string
+          created_at: string
+          customer_id: string
+          deposit_applied: number
+          discount_amount: number
+          ecpay_trade_no: string | null
+          id: string
+          invoice_status: string
+          payment_method: string
+          status: string
+          stored_value_bonus_used: number
+          stored_value_principal_used: number
+          subtotal_face_value: number
+          total_paid_amount: number
+          void_reason: string | null
+        }
+        Insert: {
+          checked_out_by?: string | null
+          checkout_at?: string
+          created_at?: string
+          customer_id: string
+          deposit_applied?: number
+          discount_amount?: number
+          ecpay_trade_no?: string | null
+          id?: string
+          invoice_status?: string
+          payment_method: string
+          status?: string
+          stored_value_bonus_used?: number
+          stored_value_principal_used?: number
+          subtotal_face_value: number
+          total_paid_amount: number
+          void_reason?: string | null
+        }
+        Update: {
+          checked_out_by?: string | null
+          checkout_at?: string
+          created_at?: string
+          customer_id?: string
+          deposit_applied?: number
+          discount_amount?: number
+          ecpay_trade_no?: string | null
+          id?: string
+          invoice_status?: string
+          payment_method?: string
+          status?: string
+          stored_value_bonus_used?: number
+          stored_value_principal_used?: number
+          subtotal_face_value?: number
+          total_paid_amount?: number
+          void_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkouts_checked_out_by_fkey"
+            columns: ["checked_out_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkouts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_records: {
+        Row: {
+          checkout_item_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          id: string
+          settled: boolean
+          settled_at: string | null
+          settlement_batch_id: string | null
+          staff_id: string
+        }
+        Insert: {
+          checkout_item_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          id?: string
+          settled?: boolean
+          settled_at?: string | null
+          settlement_batch_id?: string | null
+          staff_id: string
+        }
+        Update: {
+          checkout_item_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          settled?: boolean
+          settled_at?: string | null
+          settlement_batch_id?: string | null
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_records_checkout_item_id_fkey"
+            columns: ["checkout_item_id"]
+            isOneToOne: true
+            referencedRelation: "checkout_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_settlement_batch_id_fkey"
+            columns: ["settlement_batch_id"]
+            isOneToOne: false
+            referencedRelation: "commission_settlement_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_records_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_settlement_batches: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          staff_id: string
+          status: string
+          total_commission_amount: number
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          staff_id: string
+          status?: string
+          total_commission_amount?: number
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          staff_id?: string
+          status?: string
+          total_commission_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_settlement_batches_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_redemptions: {
+        Row: {
+          checkout_id: string | null
+          coupon_id: string
+          customer_id: string
+          id: string
+          redeemed_at: string
+        }
+        Insert: {
+          checkout_id?: string | null
+          coupon_id: string
+          customer_id: string
+          id?: string
+          redeemed_at?: string
+        }
+        Update: {
+          checkout_id?: string | null
+          coupon_id?: string
+          customer_id?: string
+          id?: string
+          redeemed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount_amount: number | null
+          min_spend: number | null
+          name: string
+          usage_limit_per_customer: number
+          usage_limit_total: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          min_spend?: number | null
+          name: string
+          usage_limit_per_customer?: number
+          usage_limit_total?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          min_spend?: number | null
+          name?: string
+          usage_limit_per_customer?: number
+          usage_limit_total?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      customer_tags: {
+        Row: {
+          created_at: string
+          customer_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_tags_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          birthday: string | null
+          churn_risk_score: number | null
+          created_at: string
+          email: string | null
+          gender: string | null
+          id: string
+          internal_note: string | null
+          last_visit_at: string | null
+          name: string
+          phone: string | null
+          profile_id: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          birthday?: string | null
+          churn_risk_score?: number | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          internal_note?: string | null
+          last_visit_at?: string | null
+          name: string
+          phone?: string | null
+          profile_id?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          birthday?: string | null
+          churn_risk_score?: number | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          internal_note?: string | null
+          last_visit_at?: string | null
+          name?: string
+          phone?: string | null
+          profile_id?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deposit_records: {
+        Row: {
+          amount: number
+          appointment_id: string
+          created_at: string
+          ecpay_trade_no: string | null
+          id: string
+          note: string | null
+          paid_at: string | null
+          payment_method: string
+          refunded_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          created_at?: string
+          ecpay_trade_no?: string | null
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          payment_method: string
+          refunded_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          created_at?: string
+          ecpay_trade_no?: string | null
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          payment_method?: string
+          refunded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      holidays: {
+        Row: {
+          holiday_date: string
+          is_closed: boolean
+          reason: string | null
+        }
+        Insert: {
+          holiday_date: string
+          is_closed?: boolean
+          reason?: string | null
+        }
+        Update: {
+          holiday_date?: string
+          is_closed?: boolean
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      loyalty_points_accounts: {
+        Row: {
+          balance: number
+          customer_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          customer_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          customer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_points_accounts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_points_transactions: {
+        Row: {
+          account_customer_id: string
+          created_at: string
+          delta: number
+          id: string
+          operator_id: string | null
+          reason: string
+          related_checkout_id: string | null
+        }
+        Insert: {
+          account_customer_id: string
+          created_at?: string
+          delta: number
+          id?: string
+          operator_id?: string | null
+          reason: string
+          related_checkout_id?: string | null
+        }
+        Update: {
+          account_customer_id?: string
+          created_at?: string
+          delta?: number
+          id?: string
+          operator_id?: string | null
+          reason?: string
+          related_checkout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_points_transactions_account_customer_id_fkey"
+            columns: ["account_customer_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_points_accounts"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "loyalty_points_transactions_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_points_transactions_related_checkout_id_fkey"
+            columns: ["related_checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_logs: {
+        Row: {
+          channel: string
+          content_snapshot: string
+          customer_id: string
+          id: string
+          line_message_id: string | null
+          scheduled_notification_id: string | null
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          channel: string
+          content_snapshot: string
+          customer_id: string
+          id?: string
+          line_message_id?: string | null
+          scheduled_notification_id?: string | null
+          sent_at?: string
+          status: string
+        }
+        Update: {
+          channel?: string
+          content_snapshot?: string
+          customer_id?: string
+          id?: string
+          line_message_id?: string | null
+          scheduled_notification_id?: string | null
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_scheduled_notification_id_fkey"
+            columns: ["scheduled_notification_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          auth_user_id: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          is_active: boolean
+          line_user_id: string | null
+          phone: string | null
+          role: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          line_user_id?: string | null
+          phone?: string | null
+          role: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          line_user_id?: string | null
+          phone?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
+      referral_records: {
+        Row: {
+          created_at: string
+          id: string
+          match_status: string
+          matched_at: string | null
+          matched_by: string | null
+          referred_customer_id: string
+          referrer_customer_id: string | null
+          referrer_input_raw: string | null
+          reward_amount: number | null
+          reward_issued_at: string | null
+          reward_status: string
+          reward_type: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_status?: string
+          matched_at?: string | null
+          matched_by?: string | null
+          referred_customer_id: string
+          referrer_customer_id?: string | null
+          referrer_input_raw?: string | null
+          reward_amount?: number | null
+          reward_issued_at?: string | null
+          reward_status?: string
+          reward_type?: string | null
+          source: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_status?: string
+          matched_at?: string | null
+          matched_by?: string | null
+          referred_customer_id?: string
+          referrer_customer_id?: string | null
+          referrer_input_raw?: string | null
+          reward_amount?: number | null
+          reward_issued_at?: string | null
+          reward_status?: string
+          reward_type?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_records_matched_by_fkey"
+            columns: ["matched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_records_referred_customer_id_fkey"
+            columns: ["referred_customer_id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_records_referrer_customer_id_fkey"
+            columns: ["referrer_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reminder_rules: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          is_active: boolean
+          message_template: string
+          name: string
+          offset_days: number
+          offset_hours: number
+          trigger_type: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_template: string
+          name: string
+          offset_days: number
+          offset_hours?: number
+          trigger_type: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message_template?: string
+          name?: string
+          offset_days?: number
+          offset_hours?: number
+          trigger_type?: string
+        }
+        Relationships: []
+      }
+      revenue_records: {
+        Row: {
+          amount: number
+          customer_id: string | null
+          id: string
+          note: string | null
+          recorded_at: string
+          recorded_by: string | null
+          revenue_type: string
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          amount: number
+          customer_id?: string | null
+          id?: string
+          note?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          revenue_type: string
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          amount?: number
+          customer_id?: string | null
+          id?: string
+          note?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          revenue_type?: string
+          source_id?: string
+          source_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_records_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_records_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      scheduled_notifications: {
+        Row: {
+          appointment_id: string | null
+          channel: string
+          created_at: string
+          customer_id: string
+          error_message: string | null
+          id: string
+          rule_id: string | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          channel: string
+          created_at?: string
+          customer_id: string
+          error_message?: string | null
+          id?: string
+          rule_id?: string | null
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          channel?: string
+          created_at?: string
+          customer_id?: string
+          error_message?: string | null
+          id?: string
+          rule_id?: string | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_notifications_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_notifications_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_notifications_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "reminder_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      service_variants: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          face_value_price: number
+          id: string
+          is_active: boolean
+          name: string
+          service_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes: number
+          face_value_price: number
+          id?: string
+          is_active?: boolean
+          name: string
+          service_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          face_value_price?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          service_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_variants_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          category_id: string | null
+          compliance_reviewed: boolean
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          compliance_reviewed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          compliance_reviewed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff: {
+        Row: {
+          created_at: string
+          default_commission_rate: number
+          hire_date: string | null
+          id: string
+          name: string
+          phone: string | null
+          profile_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_commission_rate: number
+          hire_date?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          profile_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_commission_rate?: number
+          hire_date?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          profile_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_recurring_availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          is_active: boolean
+          staff_id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          is_active?: boolean
+          staff_id: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          staff_id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_recurring_availability_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_schedules: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          id: string
+          is_day_off: boolean
+          note: string | null
+          staff_id: string
+          start_time: string | null
+          work_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_day_off?: boolean
+          note?: string | null
+          staff_id: string
+          start_time?: string | null
+          work_date: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_day_off?: boolean
+          note?: string | null
+          staff_id?: string
+          start_time?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_schedules_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_service_skills: {
+        Row: {
+          can_perform: boolean
+          commission_rate_override: number | null
+          service_id: string
+          staff_id: string
+        }
+        Insert: {
+          can_perform?: boolean
+          commission_rate_override?: number | null
+          service_id: string
+          staff_id: string
+        }
+        Update: {
+          can_perform?: boolean
+          commission_rate_override?: number | null
+          service_id?: string
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_service_skills_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_service_skills_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stored_value_accounts: {
+        Row: {
+          bonus_balance: number
+          customer_id: string
+          principal_balance: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_balance?: number
+          customer_id: string
+          principal_balance?: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_balance?: number
+          customer_id?: string
+          principal_balance?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stored_value_accounts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stored_value_plans: {
+        Row: {
+          bonus_amount: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          principal_amount: number
+          sort_order: number
+          tier: string
+        }
+        Insert: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          principal_amount: number
+          sort_order?: number
+          tier: string
+        }
+        Update: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          principal_amount?: number
+          sort_order?: number
+          tier?: string
+        }
+        Relationships: []
+      }
+      stored_value_topup_orders: {
+        Row: {
+          bonus_amount: number
+          created_at: string
+          customer_id: string
+          ecpay_trade_no: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string
+          plan_id: string | null
+          principal_amount: number
+          status: string
+        }
+        Insert: {
+          bonus_amount: number
+          created_at?: string
+          customer_id: string
+          ecpay_trade_no?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method: string
+          plan_id?: string | null
+          principal_amount: number
+          status?: string
+        }
+        Update: {
+          bonus_amount?: number
+          created_at?: string
+          customer_id?: string
+          ecpay_trade_no?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string
+          plan_id?: string | null
+          principal_amount?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stored_value_topup_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stored_value_topup_orders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "stored_value_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stored_value_transactions: {
+        Row: {
+          account_customer_id: string
+          bonus_delta: number
+          created_at: string
+          id: string
+          note: string | null
+          operator_id: string | null
+          principal_delta: number
+          related_checkout_id: string | null
+          related_topup_order_id: string | null
+          type: string
+        }
+        Insert: {
+          account_customer_id: string
+          bonus_delta?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          operator_id?: string | null
+          principal_delta?: number
+          related_checkout_id?: string | null
+          related_topup_order_id?: string | null
+          type: string
+        }
+        Update: {
+          account_customer_id?: string
+          bonus_delta?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          operator_id?: string | null
+          principal_delta?: number
+          related_checkout_id?: string | null
+          related_topup_order_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stored_value_transactions_account_customer_id_fkey"
+            columns: ["account_customer_id"]
+            isOneToOne: false
+            referencedRelation: "stored_value_accounts"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "stored_value_transactions_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stored_value_transactions_related_checkout_id_fkey"
+            columns: ["related_checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stored_value_transactions_related_topup_order_id_fkey"
+            columns: ["related_topup_order_id"]
+            isOneToOne: false
+            referencedRelation: "stored_value_topup_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

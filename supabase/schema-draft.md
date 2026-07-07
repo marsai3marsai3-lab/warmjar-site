@@ -212,7 +212,8 @@ audit_logs 記錄所有敏感操作（結帳、退費、儲值餘額調整、會
 | appointment_date | date NOT NULL | |
 | start_time / end_time | time NOT NULL | Asia/Taipei 當地時間 |
 | start_at / end_at | timestamptz GENERATED ALWAYS AS `(appointment_date + start_time) AT TIME ZONE 'Asia/Taipei'` STORED | 供防重疊查詢用 |
-| status | text NOT NULL DEFAULT 'pending' | pending / confirmed / completed / cancelled / no_show |
+| status | text NOT NULL DEFAULT 'pending' | pending / confirmed / completed / cancelled / no_show / pending_deposit（**v3 新增**，見下方說明） |
+| expires_at | timestamptz NULL | **v3 新增**：`status='pending_deposit'` 時的保留到期時間，過期後應用層需將狀態改為 cancelled 才會真正釋放時段（見下方 EXCLUDE 約束說明） |
 | source | text NOT NULL | line / phone / walk_in / admin / web |
 | customer_note | text NULL | |
 | internal_note | text NULL | |
@@ -221,10 +222,38 @@ audit_logs 記錄所有敏感操作（結帳、退費、儲值餘額調整、會
 | cancel_reason | text NULL | |
 | created_at / updated_at | timestamptz | |
 
-> 建議加 `EXCLUDE USING gist (staff_id WITH =, tsrange(start_at, end_at) WITH &&)
-> WHERE (status NOT IN ('cancelled','no_show'))` 防止同一師傅時段重疊
-> （需啟用 `btree_gist` extension）。這是 DB 層的最後防線，實際判斷空檔
-> 仍以應用層純函式為主。
+> **v3 更新（`0003_appointments_exclusion_and_pending_deposit.sql`，已於 warmjar-dev 執行）**：
+>
+> 1. **真正的 EXCLUDE 約束已建立**（原本 `0001_init_schema.sql` 只建了一個同形狀的普通
+>    GiST 索引，並不會阻擋重疊寫入 —— 這是 Phase 2A 審閱時發現的落差）：
+>    ```sql
+>    ALTER TABLE public.appointments
+>      ADD CONSTRAINT appointments_staff_no_overlap
+>      EXCLUDE USING gist (
+>        staff_id WITH =,
+>        tstzrange(start_at, end_at) WITH &&
+>      )
+>      WHERE (staff_id IS NOT NULL AND status NOT IN ('cancelled', 'no_show'));
+>    ```
+>    已用真實 Supabase 連線做過 8 次併發寫入驗證（兩筆同師傅同時段同時 INSERT），
+>    每次都只有 1 筆真正寫入成功。**注意**：併發衝突時 Postgres 實際丟出的錯誤
+>    不保證一定是乾淨的 `23P01`（exclusion_violation）——8 次測試中出現過一次
+>    `40P01`（deadlock_detected，兩個併發交易互搶 GiST index page lock 造成），
+>    這是 PostgreSQL 對併發 EXCLUDE 約束寫入的已知行為。`createAppointment.ts`
+>    的 `createAppointmentSafe()` 因此對 `40P01` 會自動重試一次，重試後才依
+>    `23P01` 判斷回傳 409 SLOT_ALREADY_BOOKED；串接真正的 Supabase repo 時不可
+>    只處理 `23P01`，否則會有低機率把使用者導向不必要的通用 500 錯誤。
+> 2. **`pending_deposit` 狀態與 `expires_at` 欄位已補上**，對應 `availability.ts`
+>    既有的定金保留邏輯。EXCLUDE 約束的 WHERE 條件無法使用 `now()`（partial
+>    index/約束條件必須是 IMMUTABLE），因此**約束本身把 pending_deposit 一律
+>    視為佔位，不論是否已過期**（fail-safe：寧可誤擋、不可誤放）。真正的過期
+>    釋放要靠應用層主動把過期的 pending_deposit 更新為 cancelled（例如背景
+>    cron 或下一次寫入前的 lazy-expire 步驟）；`calculateAvailability()` 的
+>    `expiresAt` 判斷只用於查詢/顯示端的樂觀空檔顯示，兩者刻意分開。Phase 2B
+>    的 Supabase repo 實作前務必補上這個 lazy-expire 步驟。
+> 3. **Rooms/resources 這次不加同款 DB 約束**：`rooms.capacity` 允許 > 1，
+>    EXCLUDE 約束本質是布林互斥、無法表達「同時最多 N 筆」，房間／資源容量
+>    檢查維持在 `availability.ts` 的純函式層（`resourceCapacities`）處理。
 
 ### `appointment_status_history`
 狀態變更留痕，也是分析 no-show 率的資料來源（呼應 CLAUDE.md 提醒策略的營運洞察）。
