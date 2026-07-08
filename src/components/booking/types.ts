@@ -44,4 +44,5 @@ export type BookingResult = {
   requiresDeposit: boolean;
   depositAmount: number;
   depositExpiresAt: string | null;
+  merchantTradeNo: string | null;
 };

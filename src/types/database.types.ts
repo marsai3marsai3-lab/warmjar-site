@@ -658,9 +658,11 @@ export type Database = {
         Row: {
           amount: number
           appointment_id: string
+          covered_appointment_ids: string[]
           created_at: string
           ecpay_trade_no: string | null
           id: string
+          merchant_trade_no: string
           note: string | null
           paid_at: string | null
           payment_method: string
@@ -670,9 +672,11 @@ export type Database = {
         Insert: {
           amount: number
           appointment_id: string
+          covered_appointment_ids?: string[]
           created_at?: string
           ecpay_trade_no?: string | null
           id?: string
+          merchant_trade_no: string
           note?: string | null
           paid_at?: string | null
           payment_method: string
@@ -682,9 +686,11 @@ export type Database = {
         Update: {
           amount?: number
           appointment_id?: string
+          covered_appointment_ids?: string[]
           created_at?: string
           ecpay_trade_no?: string | null
           id?: string
+          merchant_trade_no?: string
           note?: string | null
           paid_at?: string | null
           payment_method?: string

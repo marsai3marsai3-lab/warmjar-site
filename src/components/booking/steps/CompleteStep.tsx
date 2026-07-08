@@ -65,14 +65,24 @@ export function CompleteStep({ result, selectedVariants, staffName }: CompleteSt
             需先支付訂金 NT$ {result.depositAmount.toLocaleString()}{" "}
             以確認預約，逾時未付款將自動釋出時段。
           </p>
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-cream-dark px-6 py-3 text-sm text-ink-light"
-          >
-            <CreditCard size={16} />
-            線上付款（即將開放）
-          </button>
+          {result.merchantTradeNo ? (
+            <a
+              href={`/api/book/ecpay/checkout?merchantTradeNo=${result.merchantTradeNo}`}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-terracotta px-6 py-3 text-sm font-medium text-cream shadow-sm transition-colors hover:bg-terracotta-dark"
+            >
+              <CreditCard size={16} />
+              線上付款
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full bg-cream-dark px-6 py-3 text-sm text-ink-light"
+            >
+              <CreditCard size={16} />
+              線上付款（暫時無法使用）
+            </button>
+          )}
         </div>
       ) : (
         <div className="mx-auto mt-5 max-w-sm rounded-2xl border border-olive/30 bg-olive/5 p-5 text-left">

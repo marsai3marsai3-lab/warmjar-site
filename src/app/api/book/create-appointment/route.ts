@@ -12,6 +12,8 @@ import { createAppointmentRepository } from "@/lib/booking/supabaseAppointmentRe
 import { findOrCreateCustomer } from "@/lib/booking/customers";
 import { evaluateDepositPolicy } from "@/lib/booking/depositPolicy";
 import { fetchCustomerDepositHistory } from "@/lib/booking/depositHistory";
+import { createDepositRecord } from "@/lib/booking/depositRecords";
+import { generateMerchantTradeNo } from "@/lib/booking/ecpayOrder";
 import { BOOKING_BUFFER_MINUTES, DEPOSIT_HOLD_MINUTES } from "@/lib/booking/constants";
 
 const SESSION_COOKIE = "book_session";
@@ -125,6 +127,17 @@ export async function POST(request: Request) {
       .eq("id", result.appointmentIds[0]);
   }
 
+  let merchantTradeNo: string | null = null;
+  if (depositPolicy.requiresDeposit) {
+    merchantTradeNo = generateMerchantTradeNo();
+    await createDepositRecord(supabase, {
+      anchorAppointmentId: result.appointmentIds[0],
+      coveredAppointmentIds: result.appointmentIds,
+      amount: depositPolicy.amount,
+      merchantTradeNo,
+    });
+  }
+
   return NextResponse.json({
     ok: true,
     appointmentIds: result.appointmentIds,
@@ -134,5 +147,6 @@ export async function POST(request: Request) {
     requiresDeposit: depositPolicy.requiresDeposit,
     depositAmount: depositPolicy.amount,
     depositExpiresAt: expiresAt,
+    merchantTradeNo,
   });
 }
