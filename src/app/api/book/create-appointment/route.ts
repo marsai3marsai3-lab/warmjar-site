@@ -10,11 +10,9 @@ import { createMultiServiceAppointments } from "@/lib/booking/createAppointment"
 import { createSupabaseAppointmentSqlClient } from "@/lib/booking/appointmentSqlClient";
 import { createAppointmentRepository } from "@/lib/booking/supabaseAppointmentRepository";
 import { findOrCreateCustomer } from "@/lib/booking/customers";
-import {
-  BOOKING_BUFFER_MINUTES,
-  DEPOSIT_HOLD_MINUTES,
-  DEPOSIT_PLACEHOLDER_AMOUNT,
-} from "@/lib/booking/constants";
+import { evaluateDepositPolicy } from "@/lib/booking/depositPolicy";
+import { fetchCustomerDepositHistory } from "@/lib/booking/depositHistory";
+import { BOOKING_BUFFER_MINUTES, DEPOSIT_HOLD_MINUTES } from "@/lib/booking/constants";
 
 const SESSION_COOKIE = "book_session";
 
@@ -74,7 +72,7 @@ export async function POST(request: Request) {
 
   const variantsRes = await supabase
     .from("service_variants")
-    .select("id, duration_minutes")
+    .select("id, duration_minutes, face_value_price")
     .in("id", serviceVariantIds);
   if (variantsRes.error || !variantsRes.data) {
     return NextResponse.json({ error: "服務項目資料錯誤，請重新選擇" }, { status: 400 });
@@ -85,20 +83,30 @@ export async function POST(request: Request) {
     serviceVariantId: id,
     durationMinutes: durationById.get(id) ?? 0,
   }));
+  const totalFaceValue = variantsRes.data.reduce((sum, v) => sum + v.face_value_price, 0);
 
   const slots = splitServiceSlots(orderedDurations, startTime as TimeString);
 
   const customer = await findOrCreateCustomer(supabase, customerPhone, customerName);
 
+  const depositHistory = await fetchCustomerDepositHistory(supabase, customer.id);
+  const depositPolicy = evaluateDepositPolicy({
+    customerHistory: depositHistory,
+    totalFaceValue,
+  });
+
   const sqlClient = createSupabaseAppointmentSqlClient(supabase);
-  const expiresAt = new Date(Date.now() + DEPOSIT_HOLD_MINUTES * 60 * 1000).toISOString();
+  const expiresAt = depositPolicy.requiresDeposit
+    ? new Date(Date.now() + DEPOSIT_HOLD_MINUTES * 60 * 1000).toISOString()
+    : null;
+  const initialStatus = depositPolicy.requiresDeposit ? "pending_deposit" : "confirmed";
 
   const result = await createMultiServiceAppointments(
     (serviceVariantId) =>
       createAppointmentRepository(sqlClient, {
         serviceVariantId,
         source: "web",
-        status: "pending_deposit",
+        status: initialStatus,
         expiresAt,
       }),
     (appointmentId) => sqlClient.cancelAppointment(appointmentId, "slot_conflict_rollback"),
@@ -123,8 +131,8 @@ export async function POST(request: Request) {
     staffId: resolvedStaffId,
     date,
     startTime,
-    requiresDeposit: true,
-    depositAmount: DEPOSIT_PLACEHOLDER_AMOUNT,
+    requiresDeposit: depositPolicy.requiresDeposit,
+    depositAmount: depositPolicy.amount,
     depositExpiresAt: expiresAt,
   });
 }

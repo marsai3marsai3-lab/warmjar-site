@@ -43,5 +43,5 @@ export type BookingResult = {
   startTime: string;
   requiresDeposit: boolean;
   depositAmount: number;
-  depositExpiresAt: string;
+  depositExpiresAt: string | null;
 };

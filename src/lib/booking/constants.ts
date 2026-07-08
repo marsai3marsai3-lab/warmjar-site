@@ -4,7 +4,6 @@ export const BOOKING_BUFFER_MINUTES = 15;
 // 找空檔的時段間隔（分鐘）。
 export const SLOT_INTERVAL_MINUTES = 30;
 
-// 線上預約一律視為需要定金保留時段（見 CLAUDE.md no-show 觀察），
-// 這裡先用固定值佔位；依服務別/儲值方案調整定金金額留待後續 phase。
+// 需要訂金時，保留時段的時限（分鐘）；訂金金額改由 depositPolicy.ts 依
+// 顧客爽約紀錄與服務面額動態計算，不再是固定值。
 export const DEPOSIT_HOLD_MINUTES = 30;
-export const DEPOSIT_PLACEHOLDER_AMOUNT = 300;
