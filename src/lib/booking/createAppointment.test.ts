@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createAppointmentSafe,
+  createMultiServiceAppointments,
   type AppointmentRepository,
   type CreateAppointmentPayload,
 } from "./createAppointment";
@@ -102,5 +103,91 @@ describe("createAppointmentSafe", () => {
       message: "此時段剛被預約，請重新選擇",
       httpStatus: 409,
     });
+  });
+});
+
+describe("createMultiServiceAppointments", () => {
+  it("16) 多服務依序全部成功時回傳所有 appointmentId，不觸發補償取消", async () => {
+    let nextId = 1;
+    const makeRepo = (serviceVariantId: string): AppointmentRepository => ({
+      async insertAppointment() {
+        return { id: `ap_${serviceVariantId}_${nextId++}` };
+      },
+    });
+    const cancelAppointment = vi.fn(async () => {});
+
+    const result = await createMultiServiceAppointments(
+      makeRepo,
+      cancelAppointment,
+      { customerId: "c1", staffId: "s1", date: "2026-07-10" },
+      [
+        { serviceVariantId: "svc-a", startTime: "10:00", endTime: "11:00" },
+        { serviceVariantId: "svc-b", startTime: "11:00", endTime: "11:30" },
+      ]
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      appointmentIds: ["ap_svc-a_1", "ap_svc-b_2"],
+    });
+    expect(cancelAppointment).not.toHaveBeenCalled();
+  });
+
+  it("17) 第二個服務時段衝突時，補償取消先前已建立的預約並回傳友善 409", async () => {
+    const makeRepo = (serviceVariantId: string): AppointmentRepository => ({
+      async insertAppointment() {
+        if (serviceVariantId === "svc-a") {
+          return { id: "ap_svc-a_1" };
+        }
+        throw { code: "23P01", message: "conflicting key value violates exclusion constraint" };
+      },
+    });
+    const cancelAppointment = vi.fn(async () => {});
+
+    const result = await createMultiServiceAppointments(
+      makeRepo,
+      cancelAppointment,
+      { customerId: "c1", staffId: "s1", date: "2026-07-10" },
+      [
+        { serviceVariantId: "svc-a", startTime: "10:00", endTime: "11:00" },
+        { serviceVariantId: "svc-b", startTime: "11:00", endTime: "11:30" },
+      ]
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      code: "SLOT_ALREADY_BOOKED",
+      message: "此時段剛被預約，請重新選擇",
+      httpStatus: 409,
+    });
+    expect(cancelAppointment).toHaveBeenCalledTimes(1);
+    expect(cancelAppointment).toHaveBeenCalledWith("ap_svc-a_1");
+  });
+
+  it("18) 補償取消本身失敗也不應讓整體流程拋出例外", async () => {
+    const makeRepo = (serviceVariantId: string): AppointmentRepository => ({
+      async insertAppointment() {
+        if (serviceVariantId === "svc-a") {
+          return { id: "ap_svc-a_1" };
+        }
+        throw { code: "23P01", message: "conflicting key value violates exclusion constraint" };
+      },
+    });
+    const cancelAppointment = vi.fn(async () => {
+      throw new Error("network blip");
+    });
+
+    const result = await createMultiServiceAppointments(
+      makeRepo,
+      cancelAppointment,
+      { customerId: "c1", staffId: "s1", date: "2026-07-10" },
+      [
+        { serviceVariantId: "svc-a", startTime: "10:00", endTime: "11:00" },
+        { serviceVariantId: "svc-b", startTime: "11:00", endTime: "11:30" },
+      ]
+    );
+
+    expect(result.ok).toBe(false);
+    expect(cancelAppointment).toHaveBeenCalledTimes(1);
   });
 });

@@ -66,3 +66,57 @@ export async function createAppointmentSafe(
     };
   }
 }
+
+export type MultiServiceSlot = {
+  serviceVariantId: string;
+  startTime: string;
+  endTime: string;
+};
+
+export type CreateMultiServiceResult =
+  | { ok: true; appointmentIds: string[] }
+  | {
+      ok: false;
+      code: "SLOT_ALREADY_BOOKED" | "UNKNOWN";
+      message: string;
+      httpStatus: number;
+    };
+
+/**
+ * A multi-service booking (e.g. 60min + 30min back-to-back) writes one
+ * appointments row per service_variant_id. Each row is its own EXCLUDE-
+ * protected insert, so this isn't one atomic DB transaction — if a later
+ * slot in the sequence loses a race (e.g. someone else grabbed the tail end
+ * of the block a moment earlier), we compensate by cancelling whatever we
+ * already created for this booking rather than leaving orphaned appointments.
+ */
+export async function createMultiServiceAppointments(
+  makeRepo: (serviceVariantId: string) => AppointmentRepository,
+  cancelAppointment: (appointmentId: string) => Promise<void>,
+  base: { customerId: string; staffId: string; date: string },
+  slots: MultiServiceSlot[]
+): Promise<CreateMultiServiceResult> {
+  const createdIds: string[] = [];
+
+  for (const slot of slots) {
+    const repo = makeRepo(slot.serviceVariantId);
+    const result = await createAppointmentSafe(repo, {
+      customerId: base.customerId,
+      staffId: base.staffId,
+      date: base.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+    });
+
+    if (!result.ok) {
+      for (const id of createdIds) {
+        await cancelAppointment(id).catch(() => {});
+      }
+      return result;
+    }
+
+    createdIds.push(result.appointmentId);
+  }
+
+  return { ok: true, appointmentIds: createdIds };
+}

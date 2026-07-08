@@ -96,12 +96,12 @@ export type AvailableSlot = {
 const TAIPEI_TZ = "Asia/Taipei";
 const OCCUPYING_STATUSES = new Set(["pending", "confirmed", "completed", "pending_deposit"]);
 
-function toMinutes(t: string): number {
+export function toMinutes(t: string): number {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
 
-function toTimeString(minutes: number): TimeString {
+export function toTimeString(minutes: number): TimeString {
   const h = Math.floor(minutes / 60)
     .toString()
     .padStart(2, "0");
@@ -157,7 +157,7 @@ function collectRequiredResources(services: ServiceSelection[]): string[] {
   return [...set];
 }
 
-function canStaffPerformAllServices(
+export function canStaffPerformAllServices(
   staffId: string,
   services: ServiceSelection[],
   staffServiceSkills: StaffServiceSkill[]
