@@ -157,12 +157,22 @@ function collectRequiredResources(services: ServiceSelection[]): string[] {
   return [...set];
 }
 
+/**
+ * 「沒有技能紀錄＝視為什麼都會」的判斷要用**這位師傅自己**有沒有任何
+ * staff_service_skills 列來決定，不能看整張表是不是空的——Phase 4
+ * 抽成率個別覆蓋功能上線後，staff_service_skills 第一次會有真實資料
+ * （之前一直是空表，全體師傅都靠這個 fallback），如果沿用「整張表
+ * 空才視為全能」，只要有任何一位師傅被設定了一筆覆蓋（哪怕只是抽成率，
+ * 不是真的技能限制），全店其他從未設定過的師傅會瞬間被誤判成「什麼都
+ * 不會」，找空檔會直接漏掉他們。
+ */
 export function canStaffPerformAllServices(
   staffId: string,
   services: ServiceSelection[],
   staffServiceSkills: StaffServiceSkill[]
 ): boolean {
-  if (!staffServiceSkills.length) return true;
+  const hasAnyRecordForThisStaff = staffServiceSkills.some((s) => s.staffId === staffId);
+  if (!hasAnyRecordForThisStaff) return true;
 
   for (const svc of services) {
     const found = staffServiceSkills.some(

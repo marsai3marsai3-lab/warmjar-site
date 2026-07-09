@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateAvailability,
+  canStaffPerformAllServices,
   type AppointmentLike,
   type AvailabilityInput,
   type CalendarEvent,
@@ -134,6 +135,34 @@ describe("calculateAvailability", () => {
 
     const first = slots.find((s) => s.startTime === "10:00");
     expect(first?.availableStaffIds).toEqual(["c"]);
+  });
+
+  it("160) 【回歸測試】某師傅被設定了技能/抽成覆蓋列後，完全沒有任何列的其他師傅不能被誤判成什麼都不會——判斷要看「這位師傅自己」有沒有列，不是整張表是不是空的", () => {
+    // 呼應 Phase 4 抽成率個別覆蓋：staff_service_skills 過去一直是空表，
+    // 全體師傅都靠「整張表是空的」這個 fallback 視為全能。一旦有任何
+    // 一位師傅（例如 a）被設定了一筆列（哪怕只是抽成率覆蓋，不是真的
+    // 技能限制），從未設定過的師傅（例如 d）不能因此被牽連。
+    expect(canStaffPerformAllServices("d", baseServices(), [{ staffId: "a", serviceId: "warmjar-60" }])).toBe(
+      true
+    );
+  });
+
+  it("161) 同一批技能資料裡，有列的師傅仍然照舊只看自己的列（不因為別人有列就變寬鬆）", () => {
+    const skills: StaffServiceSkill[] = [{ staffId: "a", serviceId: "fascia" }];
+    expect(canStaffPerformAllServices("a", baseServices(), skills)).toBe(false);
+  });
+
+  it("162) 【整合測試】師傅 d 完全沒有技能列，即使師傅 a 有列，找空檔仍然要把 d 算進候選名單", () => {
+    const staffSchedules: StaffSchedule[] = [
+      { staffId: "a", date, startTime: "10:00", endTime: "12:00" },
+      { staffId: "d", date, startTime: "10:00", endTime: "12:00" },
+    ];
+    const skills: StaffServiceSkill[] = [{ staffId: "a", serviceId: "fascia" }];
+
+    const slots = run({ staffSchedules, staffServiceSkills: skills, services: baseServices() });
+    const ten = slots.find((s) => s.startTime === "10:00");
+    expect(ten?.availableStaffIds).toContain("d");
+    expect(ten?.availableStaffIds).not.toContain("a"); // a 有列但沒設 warmjar-60，被排除
   });
 
   it("6) 打烊前不足時長不可約", () => {
