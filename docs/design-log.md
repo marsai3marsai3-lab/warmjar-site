@@ -131,3 +131,100 @@ Phase 3-2 驗收時工程端自查發現三個缺口，已確認排入 Phase 3-3
   業務功能 phase 之後、正式上線之前。
 - 不指定分配優化（`availableStaffIds[0]` 無負載平衡）——優先度低，
   排在上線前基礎設施 phase 之前的打磨階段。
+
+## 2026-07-12 — Phase 4 開工前決策（回覆 phase-4-checkout-draft.md §5）
+
+### §5.1 抽成率優先序：採納「服務優先」
+`staff_service_skills.commission_rate_override` > `services.default_commission_rate`
+> `staff.default_commission_rate`，照草案建議定案。**附加要求**：抽成率
+設定介面必須顯示「目前生效值與其來源層級」（例如
+`35%（來自：陳師傅×油壓 個別設定）`），不能只顯示數字讓使用者自己
+反推是哪一層在生效——這條連帶影響 UI 設計，`commissionRate` 解析函式
+要回傳來源層級標籤，不能只回傳數字。
+
+### §5.2 訂金沒收：定案為「標記爽約時手動確認，預設勾選」
+不是自動沒收，也不是完全獨立於 no_show 流程的動作，而是**掛在
+no_show 確認框上**：若該預約有 `status='paid'` 的訂金，確認框內附帶
+「同時沒收訂金 NT$XXX」勾選項，**預設勾選、可取消**（保留人情彈性
+——例如客人事後聯繫改期，店員可以取消勾選，訂金維持 `paid` 不動）。
+沒收動作：`deposit_records.status → 'forfeited'`、寫一筆
+`revenue_records`（`revenue_type='forfeited_deposit'`）、寫
+`audit_logs`。既有的 waive／退款機制（Phase 3-2/3-3 已實作）完全不受
+影響，三者是互斥但各自獨立的訂金終態路徑。
+
+### §5.3 折扣拆分：報表先合併，資料結構留擴充空間
+`checkouts.discount_amount` 維持單一合併欄位，不拆項目折扣/整單折扣
+兩個數字。草案裡的折扣分攤演算法（最大餘數法）本來就是在
+`checkout_items` 層級記錄每項的 `paid_amount`，已經是「按項記錄」的
+細粒度，之後如果要拆報表不需要動資料結構，只是查詢邏輯的事。
+
+### §5.4 客數：結帳筆數，報表欄位命名避免混淆
+採 `count(checkouts)`（結帳單數，不是不重複來客數），但日結報表上的
+欄位名稱定為「**結帳筆數**」而不是「客數」，避免使用者誤讀成不重複
+來店人數。
+
+### 五個 schema 缺口全數確認修補
+`checkout_payments` 表、`deposit_records.applied_checkout_id`、
+`checkouts`/`commission_records` 的作廢相關欄位、`services` 的服務層
+抽成欄位、訂金沒收依 §5.2 決策接上——全部排入 Phase 4 migration。
+
+Phase 4 依 phase-4-checkout-draft.md 開工，118 個既有測試案例不得
+變紅，「折扣價付款、抽成仍按 face_value 計算」的鐵律測試為必要
+交付項目。
+
+## 2026-07-12 — Phase 4 驗收通過 + 後台帳號顯示/登出，收官
+
+### Phase 4 正式完成
+結帳（POS）與抽成系統四劇本（權限頁面層級防禦、鐵律抽成、作廢重開、
+爽約沒收）驗收全數通過，172 個測試案例全綠（含驗收後新增的帳號選單
+相關測試）。過程中發現並修掉一個不屬於 Phase 4 範圍、但被 Phase 4
+觸發的既有 bug：`canStaffPerformAllServices` 誤用「整張
+`staff_service_skills` 表是否為空」判斷「這位師傅是否視為全能」，
+應該是「這位師傅自己有沒有列」——已修正並補回歸測試，細節見
+`fix: staff_service_skills capability check must be scoped per-staff`
+commit。
+
+### 後台帳號顯示與登出
+`/admin` 頂部 bar 新增帳號選單：顯示 `display_name`（或信箱）＋角色
+標籤（店主/店長），手機寬度收成頭像圓點、點開一樣看得到完整資訊，
+含登出按鈕，manager/owner 都看得到自己的身分——共用裝置確認「現在
+是誰登著」的安全功能。技術細節：把 `proxy.ts` 的受保護路徑判斷抽成
+`isProtectedPath()` 獨立測試（原本直接寫死在 middleware 裡，不好單元
+測試），「登出後訪問 /admin 被導回 /login」這條規則本身現在有測試
+覆蓋，但**不是**真的模擬瀏覽器登出再訪問（專案沒有 E2E 框架），這點
+驗收時請手動確認一次實際登出行為。
+
+### 已知待辦總表（更新）
+
+**本輪已清：**
+- ✅ 結帳（POS）流程（行事曆帶入／walk-in 兩入口、同店到訪合併、
+  項目折扣＋整單折讓、混合付款、訂金自動折抵）
+- ✅ 抽成三層解析（師傅×服務個別設定／服務預設／師傅保底）＋
+  「目前生效值與來源層級」顯示
+- ✅ 訂金沒收（標記爽約時手動確認，預設勾選）
+- ✅ 作廢重開狀態機（含 commission_records 同步作廢、訂金釋放可
+  重新折抵）
+- ✅ 日結報表（當日營收／訂金收入含沒收／師傅業績抽成／結帳筆數）＋
+  CSV 匯出
+- ✅ 累計消費真值（Phase 3-3 留下的待辦，這輪接上）
+- ✅ 後台帳號顯示與登出
+- ✅ 附帶修掉 `staff_service_skills` 全域 fallback 的既有 bug
+
+**Phase 4 新增、留給後續 phase 的待辦：**
+- `checkouts.status='refunded'`（服務已完成、事後全額退費）——schema
+  已有這個狀態值但這輪刻意不實作，跟「作廢重開」是不同流程，涉及
+  要不要連動退抽成、退預約狀態等更複雜的政策問題，留到有明確需求
+  再設計（見 phase-4-checkout-draft.md 3.3）。
+- `commission_settlement_batches`（月結/週結批次）——表在 Phase 1
+  就設計好，但目前只做到「結帳當下逐筆算好 commission_records」，
+  還沒有「批次標記已請款/已發放」的介面，供對帳發薪用，排到抽成
+  相關的後續 phase。
+- `checkout_payments`／`checkouts.payment_method` 的 `stored_value`／
+  `coupon` 兩個付款方式——CHECK 約束已放進去，UI 先不開放輸入，
+  等儲值 phase 上線一起接。
+
+**仍掛著，未變動：**
+- 簡訊商（SMS provider）串接、lazy-expire 排程、正式環境 SMTP、
+  Vercel 環境變數規劃——四項合併的「上線前基礎設施」phase。
+- 不指定分配優化（`availableStaffIds[0]` 無負載平衡）——優先度低。
+- 服務紀錄照片上傳——綁定 Phase 6 電子同意書機制。
