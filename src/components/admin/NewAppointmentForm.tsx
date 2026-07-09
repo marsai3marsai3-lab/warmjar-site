@@ -2,20 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Check } from "lucide-react";
+import { AlertCircle, Check, UserCheck } from "lucide-react";
 import { taipeiTodayISO } from "@/lib/admin/dateUtils";
+import { isLinkedToCustomer, type CustomerCandidate } from "@/lib/admin/customerAutofill";
 import { createManualAppointment } from "@/app/admin/(ops)/appointments/new/_actions";
+import { CustomerSearchField } from "./CustomerSearchField";
 
 type ServiceVariant = { id: string; name: string; durationMinutes: number; price: number };
 type ServiceItem = { id: string; name: string; variants: ServiceVariant[] };
 type ServiceCategory = { id: string; name: string; services: ServiceItem[] };
 type StaffOption = { id: string; name: string };
 type DaySlot = { startTime: string; endTime: string; availableStaffIds: string[] };
-type SourceValue = "walk_in" | "phone" | "admin";
+type SourceValue = "walk_in" | "phone" | "line_oa" | "instagram" | "admin";
 
 const SOURCE_OPTIONS: { value: SourceValue; label: string }[] = [
   { value: "walk_in", label: "現場臨櫃" },
   { value: "phone", label: "電話預約" },
+  { value: "line_oa", label: "官方LINE" },
+  { value: "instagram", label: "IG" },
   { value: "admin", label: "其他" },
 ];
 
@@ -37,8 +41,17 @@ export function NewAppointmentForm() {
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [linkedCustomer, setLinkedCustomer] = useState<CustomerCandidate | null>(null);
   const [source, setSource] = useState<SourceValue>("walk_in");
   const [note, setNote] = useState("");
+
+  const isExistingCustomer = isLinkedToCustomer(linkedCustomer, customerName, customerPhone);
+
+  function selectCustomer(customer: CustomerCandidate) {
+    setCustomerName(customer.name);
+    setCustomerPhone(customer.phone);
+    setLinkedCustomer(customer);
+  }
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,6 +157,7 @@ export function NewAppointmentForm() {
       setSelectedTime(null);
       setCustomerName("");
       setCustomerPhone("");
+      setLinkedCustomer(null);
       setNote("");
       setTimeout(() => router.push(`/admin/calendar?date=${date}&view=day`), 800);
     } finally {
@@ -252,17 +266,29 @@ export function NewAppointmentForm() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium text-ink-muted">客人資料</h2>
-        <input
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-medium text-ink-muted">客人資料</h2>
+          {isExistingCustomer && (
+            <span className="flex items-center gap-1 rounded-full bg-olive/10 px-2 py-0.5 text-xs font-medium text-olive-dark">
+              <UserCheck size={12} />
+              舊客
+            </span>
+          )}
+        </div>
+        <CustomerSearchField
+          field="name"
           value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          placeholder="姓名"
+          onChange={setCustomerName}
+          onSelect={selectCustomer}
+          placeholder="姓名（輸入 2 字以上搜尋舊客）"
           className={FIELD_INPUT_CLASS}
         />
-        <input
+        <CustomerSearchField
+          field="phone"
           value={customerPhone}
-          onChange={(e) => setCustomerPhone(e.target.value.replace(/[^0-9]/g, ""))}
-          placeholder="手機號碼"
+          onChange={(v) => setCustomerPhone(v.replace(/[^0-9]/g, ""))}
+          onSelect={selectCustomer}
+          placeholder="手機號碼（輸入第 4 碼起搜尋舊客）"
           inputMode="numeric"
           className={FIELD_INPUT_CLASS}
         />

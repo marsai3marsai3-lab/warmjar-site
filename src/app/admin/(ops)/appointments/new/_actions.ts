@@ -22,7 +22,7 @@ export async function createManualAppointment(input: {
   startTime: string;
   customerName: string;
   customerPhone: string;
-  source: "walk_in" | "phone" | "admin";
+  source: "walk_in" | "phone" | "line_oa" | "instagram" | "admin";
   customerNote?: string;
 }): Promise<ActionResult> {
   try {
