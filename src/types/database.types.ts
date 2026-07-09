@@ -64,6 +64,7 @@ export type Database = {
           appointment_date: string
           cancel_reason: string | null
           cancelled_at: string | null
+          checked_in_at: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -86,6 +87,7 @@ export type Database = {
           appointment_date: string
           cancel_reason?: string | null
           cancelled_at?: string | null
+          checked_in_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -108,6 +110,7 @@ export type Database = {
           appointment_date?: string
           cancel_reason?: string | null
           cancelled_at?: string | null
+          checked_in_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
@@ -668,6 +671,8 @@ export type Database = {
           payment_method: string
           refunded_at: string | null
           status: string
+          waived_by: string | null
+          waived_by_at: string | null
         }
         Insert: {
           amount: number
@@ -682,6 +687,8 @@ export type Database = {
           payment_method: string
           refunded_at?: string | null
           status?: string
+          waived_by?: string | null
+          waived_by_at?: string | null
         }
         Update: {
           amount?: number
@@ -696,6 +703,8 @@ export type Database = {
           payment_method?: string
           refunded_at?: string | null
           status?: string
+          waived_by?: string | null
+          waived_by_at?: string | null
         }
         Relationships: [
           {
@@ -703,6 +712,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_records_waived_by_fkey"
+            columns: ["waived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
