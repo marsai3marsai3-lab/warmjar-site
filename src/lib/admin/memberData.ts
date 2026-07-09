@@ -20,9 +20,8 @@ export type MemberListRow = {
   phone: string | null;
   tags: TagOption[];
   lastVisitAt: string | null;
-  // Phase 3-3 決策 E.2：結帳功能還沒上線，沒有真實 paid_amount 可用，
-  // 這欄一律 null，UI 顯示「N/A（尚未結帳上線）」，Phase 4 才接真值。
-  totalSpend: null;
+  // Phase 4 接上真值：Σ 已完成結帳單的 total_paid_amount（作廢的單不算）。
+  totalSpend: number;
   noShowCount: number;
 };
 
@@ -101,7 +100,7 @@ export async function fetchMemberList(
   if (candidates.length === 0) return [];
   const candidateIds = candidates.map((c) => c.id);
 
-  const [tagsRes, noShowRes, completedRes] = await Promise.all([
+  const [tagsRes, noShowRes, completedRes, checkoutsRes] = await Promise.all([
     supabase.from("customer_tags").select("customer_id, tags ( id, name, color )").in("customer_id", candidateIds),
     supabase.from("appointments").select("customer_id").eq("status", "no_show").in("customer_id", candidateIds),
     supabase
@@ -110,10 +109,21 @@ export async function fetchMemberList(
       .eq("status", "completed")
       .in("customer_id", candidateIds)
       .order("appointment_date", { ascending: false }),
+    supabase
+      .from("checkouts")
+      .select("customer_id, total_paid_amount")
+      .eq("status", "completed")
+      .in("customer_id", candidateIds),
   ]);
   if (tagsRes.error) throw tagsRes.error;
   if (noShowRes.error) throw noShowRes.error;
   if (completedRes.error) throw completedRes.error;
+  if (checkoutsRes.error) throw checkoutsRes.error;
+
+  const totalSpendByCustomer = new Map<string, number>();
+  for (const row of checkoutsRes.data ?? []) {
+    totalSpendByCustomer.set(row.customer_id, (totalSpendByCustomer.get(row.customer_id) ?? 0) + row.total_paid_amount);
+  }
 
   const tagsByCustomer = new Map<string, TagOption[]>();
   for (const row of tagsRes.data ?? []) {
@@ -158,7 +168,7 @@ export async function fetchMemberList(
     phone: c.phone,
     tags: tagsByCustomer.get(c.id) ?? [],
     lastVisitAt: resolveLastVisit(c.last_visit_at, lastCompletedByCustomer.get(c.id) ?? null),
-    totalSpend: null,
+    totalSpend: totalSpendByCustomer.get(c.id) ?? 0,
     noShowCount: noShowCountByCustomer.get(c.id) ?? 0,
   }));
 }

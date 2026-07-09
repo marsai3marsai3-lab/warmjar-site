@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ClipboardPlus, Clock, Users } from "lucide-react";
+import { CalendarDays, ClipboardPlus, Clock, Receipt, Users } from "lucide-react";
 
 const TABS = [
   { href: "/admin/calendar", label: "行事曆", icon: CalendarDays },
   { href: "/admin/schedule", label: "班表", icon: Clock },
   { href: "/admin/appointments/new", label: "建單", icon: ClipboardPlus },
+  { href: "/admin/checkout", label: "結帳", icon: Receipt },
   { href: "/admin/members", label: "會員", icon: Users },
 ];
 

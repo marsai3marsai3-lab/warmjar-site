@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
 import {
   availableAppointmentActions,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/admin/appointmentActions";
 import { DEPOSIT_STATUS_LABEL, STATUS_LABEL } from "@/lib/admin/labels";
 import { canShowRefundButton } from "@/lib/admin/depositActions";
+import { canBringIntoCheckout } from "@/lib/checkout/checkoutState";
 import type { CalendarAppointment } from "@/lib/admin/calendarData";
 import { performAppointmentAction, waiveAppointmentDeposit } from "@/app/admin/(ops)/calendar/_actions";
 import { RescheduleDialog } from "./RescheduleDialog";
@@ -33,15 +35,33 @@ export function AppointmentDetailPanel({ appointment, isOwner, onClose }: Appoin
   const [showWaiveConfirm, setShowWaiveConfirm] = useState(false);
   const [waiveReason, setWaiveReason] = useState("");
   const [showReschedule, setShowReschedule] = useState(false);
+  const [showNoShowConfirm, setShowNoShowConfirm] = useState(false);
+  const [forfeitDeposit, setForfeitDeposit] = useState(true);
 
-  const actions = availableAppointmentActions(appointment.status, !!appointment.checkedInAt);
+  const allActions = availableAppointmentActions(appointment.status, !!appointment.checkedInAt);
   const canReschedule = canRescheduleAppointment(appointment.status, !!appointment.checkedInAt);
+  const canCheckout = canBringIntoCheckout(appointment.status, !!appointment.checkedInAt);
+
+  // Phase 4 §5.2：no_show 若有已付訂金，走專屬的確認框（帶沒收勾選），
+  // 不用一般 window.confirm——瀏覽器原生 confirm 沒辦法放勾選框。
+  const hasForfeitableDeposit = appointment.deposit?.status === "paid";
+  const showSpecialNoShow = hasForfeitableDeposit && allActions.some((a) => a.action === "no_show");
+  const actions = showSpecialNoShow ? allActions.filter((a) => a.action !== "no_show") : allActions;
 
   function handleAction(action: AppointmentAdminAction) {
     if (!window.confirm(ACTION_CONFIRM_MESSAGE[action])) return;
     setError(null);
     startTransition(async () => {
       const result = await performAppointmentAction(appointment.id, action);
+      if (!result.ok) setError(result.error);
+      else onClose();
+    });
+  }
+
+  function handleNoShowWithDepositDecision() {
+    setError(null);
+    startTransition(async () => {
+      const result = await performAppointmentAction(appointment.id, "no_show", { forfeitDeposit });
       if (!result.ok) setError(result.error);
       else onClose();
     });
@@ -131,6 +151,15 @@ export function AppointmentDetailPanel({ appointment, isOwner, onClose }: Appoin
         {error && <p className="mb-3 text-sm text-terracotta-dark">{error}</p>}
 
         <div className="space-y-2">
+          {canCheckout && (
+            <Link
+              href={`/admin/checkout/new?appointmentId=${appointment.id}`}
+              className="block w-full rounded-full bg-terracotta py-2.5 text-center text-sm font-medium text-cream"
+            >
+              結帳
+            </Link>
+          )}
+
           {canReschedule && (
             <button
               onClick={() => setShowReschedule(true)}
@@ -139,6 +168,44 @@ export function AppointmentDetailPanel({ appointment, isOwner, onClose }: Appoin
               改期/換師傅
             </button>
           )}
+
+          {showSpecialNoShow &&
+            (showNoShowConfirm ? (
+              <div className="space-y-2 rounded-xl border border-terracotta-dark/40 bg-terracotta/5 p-3">
+                <p className="text-sm text-ink">確定要標記這筆預約為爽約嗎？這會影響顧客下次預約是否需要收訂金。</p>
+                <label className="flex items-center gap-2 text-sm text-ink">
+                  <input
+                    type="checkbox"
+                    checked={forfeitDeposit}
+                    onChange={(e) => setForfeitDeposit(e.target.checked)}
+                  />
+                  同時沒收訂金 NT$ {appointment.deposit!.amount.toLocaleString()}
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    disabled={isPending}
+                    onClick={handleNoShowWithDepositDecision}
+                    className="flex-1 rounded-full bg-terracotta-dark py-2 text-sm font-medium text-cream disabled:opacity-50"
+                  >
+                    確認標記爽約
+                  </button>
+                  <button
+                    onClick={() => setShowNoShowConfirm(false)}
+                    className="flex-1 rounded-full border border-cream-border py-2 text-sm text-ink-muted"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                disabled={isPending}
+                onClick={() => setShowNoShowConfirm(true)}
+                className="w-full rounded-full border border-cream-border py-2.5 text-sm font-medium text-ink transition-colors hover:border-terracotta disabled:opacity-50"
+              >
+                標記爽約
+              </button>
+            ))}
 
           {actions.map(({ action, label }) => (
             <button
@@ -190,7 +257,7 @@ export function AppointmentDetailPanel({ appointment, isOwner, onClose }: Appoin
             <RefundDepositButton depositId={appointment.deposit.id} onSuccess={onClose} />
           )}
 
-          {actions.length === 0 && !canReschedule && !appointment.deposit && (
+          {actions.length === 0 && !canReschedule && !canCheckout && !showSpecialNoShow && !appointment.deposit && (
             <p className="text-center text-sm text-ink-light">這筆預約已是最終狀態，沒有可操作項目。</p>
           )}
         </div>

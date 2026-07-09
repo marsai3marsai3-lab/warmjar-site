@@ -297,6 +297,41 @@ export type Database = {
           },
         ]
       }
+      checkout_payments: {
+        Row: {
+          amount: number
+          checkout_id: string
+          created_at: string
+          id: string
+          method: string
+          note: string | null
+        }
+        Insert: {
+          amount: number
+          checkout_id: string
+          created_at?: string
+          id?: string
+          method: string
+          note?: string | null
+        }
+        Update: {
+          amount?: number
+          checkout_id?: string
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_payments_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkouts: {
         Row: {
           checked_out_by: string | null
@@ -309,12 +344,15 @@ export type Database = {
           id: string
           invoice_status: string
           payment_method: string
+          reopened_from_checkout_id: string | null
           status: string
           stored_value_bonus_used: number
           stored_value_principal_used: number
           subtotal_face_value: number
           total_paid_amount: number
           void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           checked_out_by?: string | null
@@ -327,12 +365,15 @@ export type Database = {
           id?: string
           invoice_status?: string
           payment_method: string
+          reopened_from_checkout_id?: string | null
           status?: string
           stored_value_bonus_used?: number
           stored_value_principal_used?: number
           subtotal_face_value: number
           total_paid_amount: number
           void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           checked_out_by?: string | null
@@ -345,12 +386,15 @@ export type Database = {
           id?: string
           invoice_status?: string
           payment_method?: string
+          reopened_from_checkout_id?: string | null
           status?: string
           stored_value_bonus_used?: number
           stored_value_principal_used?: number
           subtotal_face_value?: number
           total_paid_amount?: number
           void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -367,6 +411,20 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "checkouts_reopened_from_checkout_id_fkey"
+            columns: ["reopened_from_checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkouts_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       commission_records: {
@@ -380,6 +438,8 @@ export type Database = {
           settled_at: string | null
           settlement_batch_id: string | null
           staff_id: string
+          voided: boolean
+          voided_at: string | null
         }
         Insert: {
           checkout_item_id: string
@@ -391,6 +451,8 @@ export type Database = {
           settled_at?: string | null
           settlement_batch_id?: string | null
           staff_id: string
+          voided?: boolean
+          voided_at?: string | null
         }
         Update: {
           checkout_item_id?: string
@@ -402,6 +464,8 @@ export type Database = {
           settled_at?: string | null
           settlement_batch_id?: string | null
           staff_id?: string
+          voided?: boolean
+          voided_at?: string | null
         }
         Relationships: [
           {
@@ -664,6 +728,7 @@ export type Database = {
         Row: {
           amount: number
           appointment_id: string
+          applied_checkout_id: string | null
           covered_appointment_ids: string[]
           created_at: string
           ecpay_trade_no: string | null
@@ -680,6 +745,7 @@ export type Database = {
         Insert: {
           amount: number
           appointment_id: string
+          applied_checkout_id?: string | null
           covered_appointment_ids?: string[]
           created_at?: string
           ecpay_trade_no?: string | null
@@ -696,6 +762,7 @@ export type Database = {
         Update: {
           amount?: number
           appointment_id?: string
+          applied_checkout_id?: string | null
           covered_appointment_ids?: string[]
           created_at?: string
           ecpay_trade_no?: string | null
@@ -710,6 +777,13 @@ export type Database = {
           waived_by_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "deposit_records_applied_checkout_id_fkey"
+            columns: ["applied_checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "deposit_records_appointment_id_fkey"
             columns: ["appointment_id"]
@@ -1257,6 +1331,7 @@ export type Database = {
           category_id: string | null
           compliance_reviewed: boolean
           created_at: string
+          default_commission_rate: number
           description: string | null
           id: string
           is_active: boolean
@@ -1268,6 +1343,7 @@ export type Database = {
           category_id?: string | null
           compliance_reviewed?: boolean
           created_at?: string
+          default_commission_rate?: number
           description?: string | null
           id?: string
           is_active?: boolean
@@ -1279,6 +1355,7 @@ export type Database = {
           category_id?: string | null
           compliance_reviewed?: boolean
           created_at?: string
+          default_commission_rate?: number
           description?: string | null
           id?: string
           is_active?: boolean

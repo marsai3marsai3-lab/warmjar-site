@@ -169,7 +169,7 @@ export function MemberListView({ tagOptions }: { tagOptions: TagOption[] }) {
             )}
             <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-ink-light">
               <span>最後來店：{m.lastVisitAt ?? "—"}</span>
-              <span>累計消費：N/A（尚未結帳上線）</span>
+              <span>累計消費：NT$ {m.totalSpend.toLocaleString()}</span>
               <span>爽約次數：{m.noShowCount}</span>
             </div>
           </Link>

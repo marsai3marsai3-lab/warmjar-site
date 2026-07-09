@@ -59,3 +59,14 @@ export async function requireOwnerForAction(): Promise<{ user: User; profile: Ad
   if (!isOwnerRole(profile.role)) throw new Error("此操作僅限店主執行");
   return { user, profile };
 }
+
+/**
+ * Phase 4：整頁面都是 owner 限定的頁面（抽成率設定、日結報表）用這個，
+ * 跟 requireAdminUser 一樣是頁面導航情境（redirect，不是 throw）——
+ * manager 進來這幾頁不該看到殘缺的畫面或錯誤訊息，直接導回行事曆。
+ */
+export async function requireOwnerUser(): Promise<{ user: User; profile: AdminProfile }> {
+  const { user, profile } = await requireAdminUser();
+  if (!isOwnerRole(profile.role)) redirect("/admin/calendar");
+  return { user, profile };
+}

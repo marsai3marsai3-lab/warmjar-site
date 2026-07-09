@@ -20,3 +20,15 @@ export function canMarkDepositRefunded(status: string): boolean {
 export function canShowRefundButton(isOwner: boolean, depositStatus: string): boolean {
   return isOwner && canMarkDepositRefunded(depositStatus);
 }
+
+/**
+ * Phase 4 §5.2 決策：訂金沒收不是自動的，是標記爽約時附帶的手動確認
+ * 選項。只有 status='paid' 的訂金才有沒收的意義（沒收的前提是錢已經
+ * 收到手上）——跟 canMarkDepositRefunded 條件剛好一樣，但這是兩個
+ * 不同的業務動作（沒收 vs 退款，各自互斥的終態路徑），刻意各自命名，
+ * 不共用同一個函式，避免以後其中一個的規則改了卻忘記另一個其實語意
+ * 不同。
+ */
+export function canForfeitDeposit(status: string): boolean {
+  return status === "paid";
+}

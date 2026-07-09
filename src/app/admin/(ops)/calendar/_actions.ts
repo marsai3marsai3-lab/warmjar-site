@@ -15,13 +15,19 @@ import {
   isAppointmentActionAllowed,
   type AppointmentAdminAction,
 } from "@/lib/admin/appointmentActions";
-import { canMarkDepositRefunded } from "@/lib/admin/depositActions";
+import { canForfeitDeposit, canMarkDepositRefunded } from "@/lib/admin/depositActions";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
+/**
+ * Phase 4 §5.2 決策：訂金沒收掛在 no_show 確認框上，不是自動的，
+ * `forfeitDeposit` 由呼叫端的勾選框決定（預設勾選、可取消，保留人情
+ * 彈性）。只有 action==='no_show' 時這個參數才有意義，其餘動作忽略。
+ */
 export async function performAppointmentAction(
   appointmentId: string,
-  action: AppointmentAdminAction
+  action: AppointmentAdminAction,
+  options?: { forfeitDeposit?: boolean }
 ): Promise<ActionResult> {
   try {
     const { profile } = await requireAdminForAction();
@@ -29,7 +35,7 @@ export async function performAppointmentAction(
 
     const current = await supabase
       .from("appointments")
-      .select("id, status, checked_in_at, appointment_date")
+      .select("id, status, checked_in_at, appointment_date, customer_id")
       .eq("id", appointmentId)
       .single();
     if (current.error || !current.data) {
@@ -54,6 +60,37 @@ export async function performAppointmentAction(
       before: current.data,
       after: update,
     });
+
+    if (action === "no_show" && options?.forfeitDeposit) {
+      const depositRes = await supabase
+        .from("deposit_records")
+        .select("id, status, amount")
+        .contains("covered_appointment_ids", [appointmentId])
+        .maybeSingle();
+
+      if (!depositRes.error && depositRes.data && canForfeitDeposit(depositRes.data.status)) {
+        await supabase.from("deposit_records").update({ status: "forfeited" }).eq("id", depositRes.data.id);
+
+        await supabase.from("revenue_records").insert({
+          revenue_type: "forfeited_deposit",
+          amount: depositRes.data.amount,
+          source_table: "deposit_records",
+          source_id: depositRes.data.id,
+          customer_id: current.data.customer_id,
+          recorded_by: profile.id,
+          note: "客人爽約，標記報到時同時確認沒收訂金",
+        });
+
+        await writeAuditLog(supabase, {
+          actorId: profile.id,
+          action: "admin.deposit.forfeit",
+          targetTable: "deposit_records",
+          targetId: depositRes.data.id,
+          before: { status: depositRes.data.status },
+          after: { status: "forfeited", amount: depositRes.data.amount },
+        });
+      }
+    }
 
     await broadcastCalendarChange({ appointmentId, date: current.data.appointment_date });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canMarkDepositRefunded, canShowRefundButton } from "./depositActions";
+import { canForfeitDeposit, canMarkDepositRefunded, canShowRefundButton } from "./depositActions";
 
 describe("canMarkDepositRefunded", () => {
   it("102) 只有 status='paid' 可以標記退款", () => {
@@ -32,5 +32,19 @@ describe("canShowRefundButton", () => {
 
   it("118) manager + 非 paid：不顯示（雙重不符）", () => {
     expect(canShowRefundButton(false, "pending")).toBe(false);
+  });
+});
+
+describe("canForfeitDeposit", () => {
+  it("153) 只有 status='paid' 可以沒收", () => {
+    expect(canForfeitDeposit("paid")).toBe(true);
+  });
+
+  it("154) pending/waived/forfeited/failed/refunded 都不能沒收", () => {
+    expect(canForfeitDeposit("pending")).toBe(false);
+    expect(canForfeitDeposit("waived")).toBe(false);
+    expect(canForfeitDeposit("forfeited")).toBe(false);
+    expect(canForfeitDeposit("failed")).toBe(false);
+    expect(canForfeitDeposit("refunded")).toBe(false);
   });
 });
