@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const DEFAULT_ADMIN_ROLE = "manager";
 
-export type AdminProfile = { id: string; role: string };
+export type AdminProfile = { id: string; role: string; displayName: string | null };
 
 /**
  * profiles is currently unpopulated project-wide (nothing ever inserted into
@@ -17,11 +17,13 @@ export async function getOrCreateProfileForAdmin(user: User): Promise<AdminProfi
 
   const existing = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, role, display_name")
     .eq("auth_user_id", user.id)
     .maybeSingle();
   if (existing.error) throw existing.error;
-  if (existing.data) return existing.data;
+  if (existing.data) {
+    return { id: existing.data.id, role: existing.data.role, displayName: existing.data.display_name };
+  }
 
   const inserted = await supabase
     .from("profiles")
@@ -30,7 +32,7 @@ export async function getOrCreateProfileForAdmin(user: User): Promise<AdminProfi
       auth_user_id: user.id,
       display_name: user.email ?? null,
     })
-    .select("id, role")
+    .select("id, role, display_name")
     .single();
 
   if (inserted.error) {
@@ -39,14 +41,14 @@ export async function getOrCreateProfileForAdmin(user: User): Promise<AdminProfi
     if ((inserted.error as { code?: string }).code === "23505") {
       const retry = await supabase
         .from("profiles")
-        .select("id, role")
+        .select("id, role, display_name")
         .eq("auth_user_id", user.id)
         .single();
       if (retry.error) throw retry.error;
-      return retry.data;
+      return { id: retry.data.id, role: retry.data.role, displayName: retry.data.display_name };
     }
     throw inserted.error;
   }
 
-  return inserted.data;
+  return { id: inserted.data.id, role: inserted.data.role, displayName: inserted.data.display_name };
 }

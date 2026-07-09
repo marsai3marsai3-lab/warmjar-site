@@ -35,6 +35,13 @@ export const SOURCE_LABEL: Record<string, string> = {
   line: "LINE 自助預約",
 };
 
+export const ROLE_LABEL: Record<string, string> = {
+  owner: "店主",
+  manager: "店長",
+  staff: "師傅",
+  customer: "客人",
+};
+
 export const STATUS_DOT_STYLE: Record<string, string> = {
   pending_deposit: "bg-gold",
   confirmed: "bg-terracotta",

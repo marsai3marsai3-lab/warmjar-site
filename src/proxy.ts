@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isProtectedPath } from '@/lib/routeGuards'
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -29,13 +30,9 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-
-  // 判斷是否為受保護路徑
-  const isLessonPage = /^\/courses\/[^/]+\/[^/]+/.test(pathname)
-  const isDashboard = pathname.startsWith('/dashboard')
   const isAdmin = pathname.startsWith('/admin')
 
-  if ((isLessonPage || isDashboard || isAdmin) && !user) {
+  if (isProtectedPath(pathname) && !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
