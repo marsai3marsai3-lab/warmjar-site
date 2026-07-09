@@ -39,6 +39,20 @@ export function isAppointmentActionAllowed(
   return availableAppointmentActions(status, isCheckedIn).some((option) => option.action === action);
 }
 
+/**
+ * Phase 3-3 C.1：改期/換師傅只在「客人還沒到店、狀態還沒定案」的窗口內
+ * 開放——跟 pending_deposit 一樣排除在外（訂金還沒解決就先改期沒有意義，
+ * 應該先處理訂金），已報到／終態也排除（人已經在現場或這筆已經結案，
+ * 改期沒有意義）。刻意不放進 AppointmentAdminAction 那個 union，因為
+ * 改期需要日期/時間/師傅這些額外輸入，跟其餘固定動作的形狀不一樣。
+ */
+export function canRescheduleAppointment(status: string, isCheckedIn: boolean): boolean {
+  if (TERMINAL_STATUSES.has(status)) return false;
+  if (status === "pending_deposit") return false;
+  if (isCheckedIn) return false;
+  return true;
+}
+
 export type AppointmentUpdate = {
   status?: string;
   checked_in_at?: string;

@@ -19,12 +19,12 @@ export type CreateAppointmentResult =
       httpStatus: number;
     };
 
-function isDeadlockError(err: unknown): boolean {
+export function isDeadlockError(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   return (err as { code?: string }).code === "40P01";
 }
 
-function isExclusionConflictError(err: unknown): boolean {
+export function isExclusionConflictError(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   const e = err as { code?: string; message?: string };
   // 40P01 is included here as a fallback for the (very unlikely) case the retry

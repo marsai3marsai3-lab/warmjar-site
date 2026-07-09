@@ -25,6 +25,16 @@ export const STATUS_BLOCK_STYLE: Record<string, string> = {
   no_show: "border-2 border-dashed border-terracotta-dark text-terracotta-dark bg-white",
 };
 
+export const SOURCE_LABEL: Record<string, string> = {
+  walk_in: "現場臨櫃",
+  phone: "電話預約",
+  line_oa: "官方LINE",
+  instagram: "IG",
+  admin: "其他",
+  web: "官網線上",
+  line: "LINE 自助預約",
+};
+
 export const STATUS_DOT_STYLE: Record<string, string> = {
   pending_deposit: "bg-gold",
   confirmed: "bg-terracotta",

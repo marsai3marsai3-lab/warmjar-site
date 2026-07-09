@@ -14,6 +14,7 @@ import { evaluateDepositPolicy } from "@/lib/booking/depositPolicy";
 import { fetchCustomerDepositHistory } from "@/lib/booking/depositHistory";
 import { createDepositRecord } from "@/lib/booking/depositRecords";
 import { generateMerchantTradeNo } from "@/lib/booking/ecpayOrder";
+import { isCustomerBlacklisted, SLOT_UNAVAILABLE_RESPONSE } from "@/lib/booking/blacklistPolicy";
 import { BOOKING_BUFFER_MINUTES, DEPOSIT_HOLD_MINUTES } from "@/lib/booking/constants";
 
 const SESSION_COOKIE = "book_session";
@@ -58,18 +59,27 @@ export async function POST(request: Request) {
   const matchingSlot = freshSlots.find((s) => s.date === date && s.startTime === startTime);
 
   if (!matchingSlot) {
-    return NextResponse.json(
-      { error: "此時段剛被預約，請重新選擇", code: "SLOT_ALREADY_BOOKED" },
-      { status: 409 }
-    );
+    return NextResponse.json(SLOT_UNAVAILABLE_RESPONSE, { status: 409 });
   }
 
   const resolvedStaffId = staffId ?? matchingSlot.availableStaffIds[0];
   if (!resolvedStaffId) {
-    return NextResponse.json(
-      { error: "此時段剛被預約，請重新選擇", code: "SLOT_ALREADY_BOOKED" },
-      { status: 409 }
-    );
+    return NextResponse.json(SLOT_UNAVAILABLE_RESPONSE, { status: 409 });
+  }
+
+  // 需求 B.4：黑名單客人一律回「這個時段沒了」，不能回專屬錯誤訊息或
+  // 403——否則客人能從「回應長得不一樣」反推自己被封鎖。用跟上面撞單
+  // 完全相同的 SLOT_UNAVAILABLE_RESPONSE，兩種情況在客戶端無法區分。
+  const existingCustomer = await supabase
+    .from("customers")
+    .select("status")
+    .eq("phone", customerPhone)
+    .maybeSingle();
+  if (existingCustomer.error) {
+    return NextResponse.json({ error: "系統錯誤，請稍後再試" }, { status: 500 });
+  }
+  if (isCustomerBlacklisted(existingCustomer.data?.status)) {
+    return NextResponse.json(SLOT_UNAVAILABLE_RESPONSE, { status: 409 });
   }
 
   const variantsRes = await supabase

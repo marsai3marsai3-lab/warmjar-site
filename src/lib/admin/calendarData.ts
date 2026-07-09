@@ -15,6 +15,7 @@ export type CalendarAppointment = {
   customerName: string;
   customerPhone: string | null;
   customerNote: string | null;
+  serviceVariantId: string;
   serviceName: string;
   faceValue: number;
   deposit: {
@@ -46,7 +47,7 @@ export async function fetchCalendarAppointments(
     .from("appointments")
     .select(
       `id, appointment_date, start_time, end_time, status, checked_in_at, expires_at,
-       customer_note, staff_id, customer_id,
+       customer_note, staff_id, customer_id, service_variant_id,
        customers ( name, phone ),
        service_variants ( name, face_value_price ),
        staff ( name )`
@@ -95,6 +96,7 @@ export async function fetchCalendarAppointments(
     customerName: a.customers?.name ?? "",
     customerPhone: a.customers?.phone ?? null,
     customerNote: a.customer_note,
+    serviceVariantId: a.service_variant_id,
     serviceName: a.service_variants?.name ?? "",
     faceValue: a.service_variants?.face_value_price ?? 0,
     deposit: depositByAppointmentId.get(a.id) ?? null,

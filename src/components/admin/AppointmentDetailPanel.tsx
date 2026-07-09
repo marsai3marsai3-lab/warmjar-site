@@ -2,10 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { X } from "lucide-react";
-import { availableAppointmentActions, type AppointmentAdminAction } from "@/lib/admin/appointmentActions";
+import {
+  availableAppointmentActions,
+  canRescheduleAppointment,
+  type AppointmentAdminAction,
+} from "@/lib/admin/appointmentActions";
 import { DEPOSIT_STATUS_LABEL, STATUS_LABEL } from "@/lib/admin/labels";
 import type { CalendarAppointment } from "@/lib/admin/calendarData";
 import { performAppointmentAction, waiveAppointmentDeposit } from "@/app/admin/(ops)/calendar/_actions";
+import { RescheduleDialog } from "./RescheduleDialog";
 
 const ACTION_CONFIRM_MESSAGE: Record<AppointmentAdminAction, string> = {
   check_in: "確定要標記這筆預約為已報到嗎？",
@@ -24,8 +29,10 @@ export function AppointmentDetailPanel({ appointment, onClose }: AppointmentDeta
   const [error, setError] = useState<string | null>(null);
   const [showWaiveConfirm, setShowWaiveConfirm] = useState(false);
   const [waiveReason, setWaiveReason] = useState("");
+  const [showReschedule, setShowReschedule] = useState(false);
 
   const actions = availableAppointmentActions(appointment.status, !!appointment.checkedInAt);
+  const canReschedule = canRescheduleAppointment(appointment.status, !!appointment.checkedInAt);
 
   function handleAction(action: AppointmentAdminAction) {
     if (!window.confirm(ACTION_CONFIRM_MESSAGE[action])) return;
@@ -121,6 +128,15 @@ export function AppointmentDetailPanel({ appointment, onClose }: AppointmentDeta
         {error && <p className="mb-3 text-sm text-terracotta-dark">{error}</p>}
 
         <div className="space-y-2">
+          {canReschedule && (
+            <button
+              onClick={() => setShowReschedule(true)}
+              className="w-full rounded-full border border-cream-border py-2.5 text-sm font-medium text-ink transition-colors hover:border-terracotta"
+            >
+              改期/換師傅
+            </button>
+          )}
+
           {actions.map(({ action, label }) => (
             <button
               key={action}
@@ -167,11 +183,25 @@ export function AppointmentDetailPanel({ appointment, onClose }: AppointmentDeta
               </button>
             ))}
 
-          {actions.length === 0 && !appointment.deposit && (
+          {actions.length === 0 && !canReschedule && !appointment.deposit && (
             <p className="text-center text-sm text-ink-light">這筆預約已是最終狀態，沒有可操作項目。</p>
           )}
         </div>
       </div>
+
+      {showReschedule && (
+        <RescheduleDialog
+          appointmentId={appointment.id}
+          serviceVariantId={appointment.serviceVariantId}
+          currentDate={appointment.date}
+          currentStaffId={appointment.staffId}
+          onClose={() => setShowReschedule(false)}
+          onSuccess={() => {
+            setShowReschedule(false);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 }

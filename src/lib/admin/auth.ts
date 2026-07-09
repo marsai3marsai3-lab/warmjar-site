@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateProfileForAdmin, type AdminProfile } from "./profiles";
+import { isOwnerRole } from "./permissions";
 
 function getAdminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? "")
@@ -43,5 +44,18 @@ export async function requireAdminForAction(): Promise<{ user: User; profile: Ad
   const user = await getAuthorizedAdminUser();
   if (!user) throw new Error("請先登入管理後台");
   const profile = await getOrCreateProfileForAdmin(user);
+  return { user, profile };
+}
+
+/**
+ * Phase 3-3 第一刀 owner/manager 分流：黑名單切換、內部評分、退款標記
+ * 這幾個動作專用。跟 requireAdminForAction 一樣以 throw 表示未授權
+ * （呼叫端是 Server Action，不是頁面導航），但額外要求 role === 'owner'
+ * ——manager 就算通過 email 白名單也會在這裡被擋下，不能只靠前端藏
+ * 按鈕，因為 Server Action 可以被直接呼叫。
+ */
+export async function requireOwnerForAction(): Promise<{ user: User; profile: AdminProfile }> {
+  const { user, profile } = await requireAdminForAction();
+  if (!isOwnerRole(profile.role)) throw new Error("此操作僅限店主執行");
   return { user, profile };
 }

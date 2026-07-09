@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   availableAppointmentActions,
   buildAppointmentUpdate,
+  canRescheduleAppointment,
   isAppointmentActionAllowed,
 } from "./appointmentActions";
 
@@ -76,5 +77,26 @@ describe("buildAppointmentUpdate", () => {
       cancelled_at: "2026-07-09T02:00:00.000Z",
       cancel_reason: "admin_cancelled",
     });
+  });
+});
+
+describe("canRescheduleAppointment", () => {
+  it("98) pending/confirmed 且尚未報到時可以改期", () => {
+    expect(canRescheduleAppointment("pending", false)).toBe(true);
+    expect(canRescheduleAppointment("confirmed", false)).toBe(true);
+  });
+
+  it("99) pending_deposit 不能改期——要先解決訂金", () => {
+    expect(canRescheduleAppointment("pending_deposit", false)).toBe(false);
+  });
+
+  it("100) 已報到不能改期——人已經在現場", () => {
+    expect(canRescheduleAppointment("confirmed", true)).toBe(false);
+  });
+
+  it("101) 終態（completed/cancelled/no_show）不能改期", () => {
+    expect(canRescheduleAppointment("completed", false)).toBe(false);
+    expect(canRescheduleAppointment("cancelled", false)).toBe(false);
+    expect(canRescheduleAppointment("no_show", false)).toBe(false);
   });
 });

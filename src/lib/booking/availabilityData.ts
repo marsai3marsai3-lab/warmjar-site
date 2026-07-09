@@ -31,6 +31,10 @@ export async function fetchAvailabilityInput(
     dateRange: { startDate: string; endDate: string };
     bufferMinutes: number;
     now?: Date;
+    // 改期/換師傅時，正在被改的那筆預約本身還在 DB 裡佔著舊時段，查詢
+    // 出來的 occupying appointments 會包含它自己——排除掉，否則它會把
+    // 自己的舊時段（或跟新時段有 buffer 重疊的鄰近時段）誤判成衝突。
+    excludeAppointmentId?: string;
   }
 ): Promise<FetchAvailabilityInputResult> {
   const variantsRes = await supabase
@@ -97,15 +101,17 @@ export async function fetchAvailabilityInput(
       isDayOff: s.is_day_off,
     }));
 
-  const appointments: AppointmentLike[] = (appointmentsRes.data ?? []).map((a) => ({
-    id: a.id,
-    date: a.appointment_date,
-    startTime: a.start_time.slice(0, 5) as TimeString,
-    endTime: a.end_time.slice(0, 5) as TimeString,
-    staffId: a.staff_id,
-    status: a.status,
-    expiresAt: a.expires_at,
-  }));
+  const appointments: AppointmentLike[] = (appointmentsRes.data ?? [])
+    .filter((a) => a.id !== params.excludeAppointmentId)
+    .map((a) => ({
+      id: a.id,
+      date: a.appointment_date,
+      startTime: a.start_time.slice(0, 5) as TimeString,
+      endTime: a.end_time.slice(0, 5) as TimeString,
+      staffId: a.staff_id,
+      status: a.status,
+      expiresAt: a.expires_at,
+    }));
 
   const staffServiceSkills: StaffServiceSkill[] = (skillsRes.data ?? []).map((s) => ({
     staffId: s.staff_id,
