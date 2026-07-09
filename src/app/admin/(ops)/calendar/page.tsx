@@ -1,4 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdminUser } from "@/lib/admin/auth";
+import { isOwnerRole } from "@/lib/admin/permissions";
 import { fetchCalendarAppointments, fetchStaffOptions } from "@/lib/admin/calendarData";
 import { addDaysISO, startOfWeekISO, taipeiTodayISO } from "@/lib/admin/dateUtils";
 import { CalendarView } from "@/components/admin/CalendarView";
@@ -13,6 +15,7 @@ export default async function AdminCalendarPage({ searchParams }: { searchParams
   const rangeStart = view === "week" ? startOfWeekISO(date) : date;
   const rangeEnd = view === "week" ? addDaysISO(rangeStart, 6) : date;
 
+  const { profile } = await requireAdminUser();
   const supabase = createAdminClient();
   const [appointments, staffOptions] = await Promise.all([
     fetchCalendarAppointments(supabase, { startDate: rangeStart, endDate: rangeEnd }),
@@ -27,6 +30,7 @@ export default async function AdminCalendarPage({ searchParams }: { searchParams
       rangeEnd={rangeEnd}
       appointments={appointments}
       staffOptions={staffOptions}
+      isOwner={isOwnerRole(profile.role)}
     />
   );
 }

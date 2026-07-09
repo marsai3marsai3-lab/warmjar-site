@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canMarkDepositRefunded } from "./depositActions";
+import { canMarkDepositRefunded, canShowRefundButton } from "./depositActions";
 
 describe("canMarkDepositRefunded", () => {
   it("102) 只有 status='paid' 可以標記退款", () => {
@@ -12,5 +12,25 @@ describe("canMarkDepositRefunded", () => {
     expect(canMarkDepositRefunded("forfeited")).toBe(false);
     expect(canMarkDepositRefunded("failed")).toBe(false);
     expect(canMarkDepositRefunded("refunded")).toBe(false);
+  });
+});
+
+describe("canShowRefundButton", () => {
+  it("115) owner + paid：顯示按鈕", () => {
+    expect(canShowRefundButton(true, "paid")).toBe(true);
+  });
+
+  it("116) manager + paid：不顯示（權限不足，即使狀態符合）", () => {
+    expect(canShowRefundButton(false, "paid")).toBe(false);
+  });
+
+  it("117) owner + 非 paid 狀態：不顯示（狀態不符，即使是 owner）", () => {
+    expect(canShowRefundButton(true, "pending")).toBe(false);
+    expect(canShowRefundButton(true, "refunded")).toBe(false);
+    expect(canShowRefundButton(true, "waived")).toBe(false);
+  });
+
+  it("118) manager + 非 paid：不顯示（雙重不符）", () => {
+    expect(canShowRefundButton(false, "pending")).toBe(false);
   });
 });

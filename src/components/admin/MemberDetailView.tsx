@@ -17,8 +17,9 @@ import {
   updateMemberProfile,
   updateMemberRating,
 } from "@/app/admin/(ops)/members/_actions";
-import { markDepositRefunded } from "@/app/admin/(ops)/calendar/_actions";
+import { canShowRefundButton } from "@/lib/admin/depositActions";
 import { RescheduleDialog } from "./RescheduleDialog";
+import { RefundDepositButton } from "./RefundDepositButton";
 
 const TABS = ["基本資料", "預約歷史", "訂金與爽約", "服務紀錄"] as const;
 type Tab = (typeof TABS)[number];
@@ -136,15 +137,6 @@ export function MemberDetailView({
         setNewNote("");
         refresh();
       }
-    });
-  }
-
-  function handleMarkRefunded(depositId: string) {
-    if (!window.confirm("確定要標記這筆訂金為已退款嗎？此按鈕只更新紀錄狀態，實際退款請另外操作 ECPay 後台。")) return;
-    startTransition(async () => {
-      const result = await markDepositRefunded(depositId);
-      if (!result.ok) setError(result.error);
-      else refresh();
     });
   }
 
@@ -357,14 +349,12 @@ export function MemberDetailView({
                     <span className="text-ink-muted">{DEPOSIT_STATUS_LABEL[d.status] ?? d.status}</span>
                   </div>
                   {d.note && <p className="mt-1 text-xs text-ink-light">備註：{d.note}</p>}
-                  {isOwner && d.status === "paid" && (
-                    <button
-                      disabled={isPending}
-                      onClick={() => handleMarkRefunded(d.id)}
+                  {canShowRefundButton(isOwner, d.status) && (
+                    <RefundDepositButton
+                      depositId={d.id}
+                      onSuccess={refresh}
                       className="mt-2 rounded-full border border-gold px-3 py-1 text-xs text-gold-light"
-                    >
-                      標記退款
-                    </button>
+                    />
                   )}
                 </div>
               ))}

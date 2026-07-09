@@ -8,9 +8,11 @@ import {
   type AppointmentAdminAction,
 } from "@/lib/admin/appointmentActions";
 import { DEPOSIT_STATUS_LABEL, STATUS_LABEL } from "@/lib/admin/labels";
+import { canShowRefundButton } from "@/lib/admin/depositActions";
 import type { CalendarAppointment } from "@/lib/admin/calendarData";
 import { performAppointmentAction, waiveAppointmentDeposit } from "@/app/admin/(ops)/calendar/_actions";
 import { RescheduleDialog } from "./RescheduleDialog";
+import { RefundDepositButton } from "./RefundDepositButton";
 
 const ACTION_CONFIRM_MESSAGE: Record<AppointmentAdminAction, string> = {
   check_in: "確定要標記這筆預約為已報到嗎？",
@@ -21,10 +23,11 @@ const ACTION_CONFIRM_MESSAGE: Record<AppointmentAdminAction, string> = {
 
 type AppointmentDetailPanelProps = {
   appointment: CalendarAppointment;
+  isOwner: boolean;
   onClose: () => void;
 };
 
-export function AppointmentDetailPanel({ appointment, onClose }: AppointmentDetailPanelProps) {
+export function AppointmentDetailPanel({ appointment, isOwner, onClose }: AppointmentDetailPanelProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [showWaiveConfirm, setShowWaiveConfirm] = useState(false);
@@ -182,6 +185,10 @@ export function AppointmentDetailPanel({ appointment, onClose }: AppointmentDeta
                 人工免收訂金
               </button>
             ))}
+
+          {appointment.deposit && canShowRefundButton(isOwner, appointment.deposit.status) && (
+            <RefundDepositButton depositId={appointment.deposit.id} onSuccess={onClose} />
+          )}
 
           {actions.length === 0 && !canReschedule && !appointment.deposit && (
             <p className="text-center text-sm text-ink-light">這筆預約已是最終狀態，沒有可操作項目。</p>

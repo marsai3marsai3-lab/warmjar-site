@@ -17,9 +17,10 @@ type CalendarViewProps = {
   rangeEnd: string;
   appointments: CalendarAppointment[];
   staffOptions: StaffOption[];
+  isOwner: boolean;
 };
 
-export function CalendarView({ view, date, rangeStart, appointments, staffOptions }: CalendarViewProps) {
+export function CalendarView({ view, date, rangeStart, appointments, staffOptions, isOwner }: CalendarViewProps) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -49,7 +50,9 @@ export function CalendarView({ view, date, rangeStart, appointments, staffOption
         <WeekView rangeStart={rangeStart} appointments={appointments} staffOptions={staffOptions} />
       )}
 
-      {selected && <AppointmentDetailPanel appointment={selected} onClose={() => setSelectedId(null)} />}
+      {selected && (
+        <AppointmentDetailPanel appointment={selected} isOwner={isOwner} onClose={() => setSelectedId(null)} />
+      )}
     </div>
   );
 }
