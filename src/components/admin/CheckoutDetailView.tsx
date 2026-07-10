@@ -97,6 +97,16 @@ export function CheckoutDetailView({ detail, isOwner }: { detail: CheckoutDetail
             <span className="text-ink">NT$ {detail.depositApplied.toLocaleString()}</span>
           </div>
         )}
+        {(detail.storedValuePrincipalUsed > 0 || detail.storedValueBonusUsed > 0) && (
+          <div className="flex justify-between">
+            <span className="text-ink-muted">儲值扣款</span>
+            <span className="text-ink">
+              NT$ {(detail.storedValuePrincipalUsed + detail.storedValueBonusUsed).toLocaleString()}
+              （本金 {detail.storedValuePrincipalUsed.toLocaleString()}＋贈額{" "}
+              {detail.storedValueBonusUsed.toLocaleString()}）
+            </span>
+          </div>
+        )}
         <div className="flex justify-between font-medium">
           <span className="text-ink">實付合計</span>
           <span className="text-ink">NT$ {detail.totalPaidAmount.toLocaleString()}</span>

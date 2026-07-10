@@ -3,6 +3,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdminForAction, requireOwnerForAction } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/booking/auditLog";
+import { derivePaymentMethod } from "@/lib/checkout/checkoutValidation";
+import { applyStoredValueTopup } from "@/lib/storedValue/storedValueData";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -169,6 +171,148 @@ export async function updateMemberRating(customerId: string, rating: number | nu
       targetId: customerId,
       before: { rating: current.data.rating },
       after: { rating },
+    });
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
+  }
+}
+
+/**
+ * Phase 5 B.1：櫃檯儲值購買，manager 可操作（跟結帳權限一致，不像
+ * 方案設定／退費限定 owner）。付款總額必須精確等於方案本金
+ * （儲值買的是固定金額的方案，不像結帳有折扣可以調整應收金額）。
+ */
+export async function createStoredValueTopup(input: {
+  customerId: string;
+  planId: string;
+  soldBy: string;
+  payments: { method: string; amount: number }[];
+}): Promise<ActionResult> {
+  try {
+    const { profile } = await requireAdminForAction();
+    const supabase = createAdminClient();
+
+    const planRes = await supabase
+      .from("stored_value_plans")
+      .select("id, principal_amount, bonus_amount, is_active")
+      .eq("id", input.planId)
+      .maybeSingle();
+    if (planRes.error || !planRes.data) return { ok: false, error: "找不到這個方案" };
+    if (!planRes.data.is_active) return { ok: false, error: "這個方案目前已停用，無法賣出" };
+
+    const paymentsTotal = input.payments.reduce((sum, p) => sum + p.amount, 0);
+    if (paymentsTotal !== planRes.data.principal_amount) {
+      return { ok: false, error: "付款總額與方案金額不符，請重新確認" };
+    }
+
+    const orderIns = await supabase
+      .from("stored_value_topup_orders")
+      .insert({
+        customer_id: input.customerId,
+        plan_id: input.planId,
+        principal_amount: planRes.data.principal_amount,
+        bonus_amount: planRes.data.bonus_amount,
+        payment_method: derivePaymentMethod(input.payments),
+        status: "paid",
+        paid_at: new Date().toISOString(),
+        sold_by: input.soldBy,
+      })
+      .select("id")
+      .single();
+    if (orderIns.error || !orderIns.data) return { ok: false, error: "建立儲值訂單失敗，請稍後再試" };
+    const topupOrderId = orderIns.data.id;
+
+    try {
+      if (input.payments.length > 0) {
+        const paymentsIns = await supabase.from("stored_value_topup_payments").insert(
+          input.payments.map((p) => ({ topup_order_id: topupOrderId, method: p.method, amount: p.amount }))
+        );
+        if (paymentsIns.error) throw new Error("付款紀錄寫入失敗");
+      }
+
+      // 上帳共用函式，跟未來 ECPay webhook 走同一個函式（見
+      // docs/phase-5-stored-value-draft.md B.2）。
+      await applyStoredValueTopup(supabase, topupOrderId, profile.id);
+
+      await writeAuditLog(supabase, {
+        actorId: profile.id,
+        action: "admin.stored_value.topup",
+        targetTable: "stored_value_topup_orders",
+        targetId: topupOrderId,
+        after: {
+          customerId: input.customerId,
+          planId: input.planId,
+          soldBy: input.soldBy,
+          principalAmount: planRes.data.principal_amount,
+          bonusAmount: planRes.data.bonus_amount,
+        },
+      });
+
+      return { ok: true };
+    } catch (innerErr) {
+      // 金流紀錄不能刪，只能標記失敗——比照 Phase 4 結帳建立失敗的
+      // 補償模式。
+      await supabase.from("stored_value_topup_orders").update({ status: "failed" }).eq("id", topupOrderId);
+      return {
+        ok: false,
+        error:
+          innerErr instanceof Error
+            ? `儲值失敗：${innerErr.message}（若款項已收，請勿重複收款）`
+            : "儲值失敗，請重新操作（若款項已收，請勿重複收款）",
+      };
+    }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
+  }
+}
+
+/**
+ * Phase 5 D：只退本金，贈額同步歸零，帳戶保留可再儲值，無手續費。
+ * 2026-07-13 決策：principal_balance=0 時 UI 層直接不顯示這個入口
+ * （見 canShowStoredValueRefundButton），這裡仍然再驗證一次，不只
+ * 靠前端擋。
+ */
+export async function refundStoredValue(customerId: string): Promise<ActionResult> {
+  try {
+    const { profile } = await requireOwnerForAction();
+    const supabase = createAdminClient();
+
+    const accountRes = await supabase
+      .from("stored_value_accounts")
+      .select("principal_balance, bonus_balance")
+      .eq("customer_id", customerId)
+      .maybeSingle();
+    if (accountRes.error || !accountRes.data) return { ok: false, error: "找不到儲值帳戶" };
+    if (accountRes.data.principal_balance <= 0) return { ok: false, error: "沒有本金餘額可退" };
+
+    const { principal_balance: principalBalance, bonus_balance: bonusBalance } = accountRes.data;
+
+    // 流水帳先寫、餘額快取後更新（見 checkout/_actions.ts 相同註解：
+    // 流水帳是唯一真實來源，先寫成功才動快取，失敗時比較好復原）。
+    const { error: txError } = await supabase.from("stored_value_transactions").insert({
+      account_customer_id: customerId,
+      type: "refund",
+      principal_delta: -principalBalance,
+      bonus_delta: -bonusBalance,
+      operator_id: profile.id,
+    });
+    if (txError) return { ok: false, error: "退費失敗，請稍後再試" };
+
+    const { error } = await supabase
+      .from("stored_value_accounts")
+      .update({ principal_balance: 0, bonus_balance: 0 })
+      .eq("customer_id", customerId);
+    if (error) return { ok: false, error: "流水帳已寫入，但餘額更新失敗，請聯繫工程師確認" };
+
+    await writeAuditLog(supabase, {
+      actorId: profile.id,
+      action: "admin.stored_value.refund",
+      targetTable: "stored_value_accounts",
+      targetId: customerId,
+      before: { principalBalance, bonusBalance },
+      after: { principalBalance: 0, bonusBalance: 0 },
     });
 
     return { ok: true };

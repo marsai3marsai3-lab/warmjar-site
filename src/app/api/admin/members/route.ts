@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     birthdayThisMonth: params.get("birthdayThisMonth") === "1",
     requiresDepositOnly: params.get("requiresDepositOnly") === "1",
     hasNoShowHistory: params.get("hasNoShowHistory") === "1",
+    hasStoredValueBalance: params.get("hasStoredValueBalance") === "1",
   };
 
   const supabase = createAdminClient();

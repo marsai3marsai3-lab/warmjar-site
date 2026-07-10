@@ -1605,6 +1605,7 @@ export type Database = {
           payment_method: string
           plan_id: string | null
           principal_amount: number
+          sold_by: string | null
           status: string
         }
         Insert: {
@@ -1617,6 +1618,7 @@ export type Database = {
           payment_method: string
           plan_id?: string | null
           principal_amount: number
+          sold_by?: string | null
           status?: string
         }
         Update: {
@@ -1629,6 +1631,7 @@ export type Database = {
           payment_method?: string
           plan_id?: string | null
           principal_amount?: number
+          sold_by?: string | null
           status?: string
         }
         Relationships: [
@@ -1646,6 +1649,45 @@ export type Database = {
             referencedRelation: "stored_value_plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "stored_value_topup_orders_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stored_value_topup_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          topup_order_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          method: string
+          topup_order_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          topup_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stored_value_topup_payments_topup_order_id_fkey"
+            columns: ["topup_order_id"]
+            isOneToOne: false
+            referencedRelation: "stored_value_topup_orders"
+            referencedColumns: ["id"]
+          },
         ]
       }
       stored_value_transactions: {
@@ -1653,36 +1695,45 @@ export type Database = {
           account_customer_id: string
           bonus_delta: number
           created_at: string
+          expires_at: string | null
           id: string
           note: string | null
           operator_id: string | null
+          plan_id: string | null
           principal_delta: number
           related_checkout_id: string | null
           related_topup_order_id: string | null
+          sold_by: string | null
           type: string
         }
         Insert: {
           account_customer_id: string
           bonus_delta?: number
           created_at?: string
+          expires_at?: string | null
           id?: string
           note?: string | null
           operator_id?: string | null
+          plan_id?: string | null
           principal_delta?: number
           related_checkout_id?: string | null
           related_topup_order_id?: string | null
+          sold_by?: string | null
           type: string
         }
         Update: {
           account_customer_id?: string
           bonus_delta?: number
           created_at?: string
+          expires_at?: string | null
           id?: string
           note?: string | null
           operator_id?: string | null
+          plan_id?: string | null
           principal_delta?: number
           related_checkout_id?: string | null
           related_topup_order_id?: string | null
+          sold_by?: string | null
           type?: string
         }
         Relationships: [
@@ -1712,6 +1763,20 @@ export type Database = {
             columns: ["related_topup_order_id"]
             isOneToOne: false
             referencedRelation: "stored_value_topup_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stored_value_transactions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "stored_value_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stored_value_transactions_sold_by_fkey"
+            columns: ["sold_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
             referencedColumns: ["id"]
           },
         ]

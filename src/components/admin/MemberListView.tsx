@@ -14,6 +14,7 @@ type Filters = {
   birthdayThisMonth: boolean;
   requiresDepositOnly: boolean;
   hasNoShowHistory: boolean;
+  hasStoredValueBalance: boolean;
 };
 
 const INITIAL_FILTERS: Filters = {
@@ -23,6 +24,7 @@ const INITIAL_FILTERS: Filters = {
   birthdayThisMonth: false,
   requiresDepositOnly: false,
   hasNoShowHistory: false,
+  hasStoredValueBalance: false,
 };
 
 function buildQuery(filters: Filters): string {
@@ -33,6 +35,7 @@ function buildQuery(filters: Filters): string {
   if (filters.birthdayThisMonth) params.set("birthdayThisMonth", "1");
   if (filters.requiresDepositOnly) params.set("requiresDepositOnly", "1");
   if (filters.hasNoShowHistory) params.set("hasNoShowHistory", "1");
+  if (filters.hasStoredValueBalance) params.set("hasStoredValueBalance", "1");
   return params.toString();
 }
 
@@ -134,6 +137,14 @@ export function MemberListView({ tagOptions }: { tagOptions: TagOption[] }) {
             onChange={(e) => setFilters((prev) => ({ ...prev, blacklistedOnly: e.target.checked }))}
           />
           黑名單
+        </label>
+        <label className="flex items-center gap-1.5">
+          <input
+            type="checkbox"
+            checked={filters.hasStoredValueBalance}
+            onChange={(e) => setFilters((prev) => ({ ...prev, hasStoredValueBalance: e.target.checked }))}
+          />
+          有儲值餘額
         </label>
       </div>
 

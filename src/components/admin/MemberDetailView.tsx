@@ -9,9 +9,12 @@ import type { TagOption } from "@/lib/admin/memberData";
 import { STATUS_LABEL, STATUS_BLOCK_STYLE, DEPOSIT_STATUS_LABEL, SOURCE_LABEL } from "@/lib/admin/labels";
 import { canRescheduleAppointment } from "@/lib/admin/appointmentActions";
 import { taipeiTodayISO } from "@/lib/admin/dateUtils";
+import type { StoredValueAccount, StoredValuePlan, StoredValueTransaction } from "@/lib/storedValue/storedValueData";
+import { canShowStoredValueRefundButton } from "@/lib/storedValue/storedValueRefund";
 import {
   addMemberNote,
   createTag,
+  refundStoredValue,
   setCustomerTags,
   toggleBlacklist,
   updateMemberProfile,
@@ -20,8 +23,9 @@ import {
 import { canShowRefundButton } from "@/lib/admin/depositActions";
 import { RescheduleDialog } from "./RescheduleDialog";
 import { RefundDepositButton } from "./RefundDepositButton";
+import { StoredValueTopupDialog } from "./StoredValueTopupDialog";
 
-const TABS = ["基本資料", "預約歷史", "訂金與爽約", "服務紀錄"] as const;
+const TABS = ["基本資料", "預約歷史", "訂金與爽約", "服務紀錄", "儲值"] as const;
 type Tab = (typeof TABS)[number];
 
 const DEPOSIT_REASON_LABEL: Record<string, string> = {
@@ -32,6 +36,16 @@ const DEPOSIT_REASON_LABEL: Record<string, string> = {
   waived: "已人工免收",
 };
 
+const STORED_VALUE_TX_LABEL: Record<string, string> = {
+  topup: "儲值",
+  consume: "消費",
+  refund: "退費",
+  adjustment: "調整",
+  void_reversal: "作廢回沖",
+};
+
+type StaffOption = { id: string; name: string };
+
 function isBirthdayThisMonth(birthday: string | null): boolean {
   if (!birthday) return false;
   return Number(birthday.slice(5, 7)) === Number(taipeiTodayISO().slice(5, 7));
@@ -41,10 +55,18 @@ export function MemberDetailView({
   detail,
   tagOptions,
   isOwner,
+  storedValueAccount,
+  storedValueTransactions,
+  activePlans,
+  staffOptions,
 }: {
   detail: MemberDetail;
   tagOptions: TagOption[];
   isOwner: boolean;
+  storedValueAccount: StoredValueAccount;
+  storedValueTransactions: StoredValueTransaction[];
+  activePlans: StoredValuePlan[];
+  staffOptions: StaffOption[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -64,11 +86,27 @@ export function MemberDetailView({
     serviceVariantId: string;
     date: string;
   } | null>(null);
+  const [showTopupDialog, setShowTopupDialog] = useState(false);
 
   const isBlacklisted = detail.profile.status === "blacklisted";
+  const storedValueTotal = storedValueAccount.principalBalance + storedValueAccount.bonusBalance;
 
   function refresh() {
     router.refresh();
+  }
+
+  function handleStoredValueRefund() {
+    if (
+      !window.confirm(
+        `確定要退費嗎？將退回本金 NT$${storedValueAccount.principalBalance.toLocaleString()}（現金/原路，人工作業），贈額 NT$${storedValueAccount.bonusBalance.toLocaleString()} 將同步歸零，帳戶保留可再儲值。`
+      )
+    )
+      return;
+    startTransition(async () => {
+      const result = await refundStoredValue(detail.profile.id);
+      if (!result.ok) setError(result.error);
+      else refresh();
+    });
   }
 
   function handleSaveProfile() {
@@ -172,6 +210,11 @@ export function MemberDetailView({
         <p className="mt-1 text-xs text-ink-light">
           狀態：{isBlacklisted ? <span className="text-terracotta-dark">● 黑名單</span> : <span>● 正常</span>}
         </p>
+        {storedValueTotal > 0 && (
+          <p className="mt-1 text-sm font-medium text-terracotta-dark">
+            儲值餘額 NT$ {storedValueTotal.toLocaleString()}
+          </p>
+        )}
       </div>
 
       {isOwner && (
@@ -402,6 +445,86 @@ export function MemberDetailView({
             ))}
           </div>
         </section>
+      )}
+
+      {tab === "儲值" && (
+        <section className="space-y-4">
+          <div className="rounded-xl border border-cream-border bg-white p-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-ink-muted">本金餘額</span>
+              <span className="text-ink">NT$ {storedValueAccount.principalBalance.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-muted">贈額餘額</span>
+              <span className="text-ink">NT$ {storedValueAccount.bonusBalance.toLocaleString()}</span>
+            </div>
+            <div className="mt-1 flex justify-between border-t border-cream-border pt-1 font-medium">
+              <span className="text-ink">可用總計</span>
+              <span className="text-ink">NT$ {storedValueTotal.toLocaleString()}</span>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => setShowTopupDialog(true)}
+                className="flex-1 rounded-full bg-terracotta py-2 text-sm font-medium text-cream"
+              >
+                + 儲值
+              </button>
+              {canShowStoredValueRefundButton(isOwner, storedValueAccount.principalBalance) && (
+                <button
+                  disabled={isPending}
+                  onClick={handleStoredValueRefund}
+                  className="flex-1 rounded-full border border-gold py-2 text-sm font-medium text-gold-light disabled:opacity-50"
+                >
+                  退費
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-muted">交易紀錄</p>
+            {storedValueTransactions.length === 0 && <p className="text-sm text-ink-light">目前沒有儲值交易紀錄。</p>}
+            <div className="space-y-2">
+              {storedValueTransactions.map((t) => (
+                <div key={t.id} className="rounded-xl border border-cream-border bg-white p-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-ink">
+                      {STORED_VALUE_TX_LABEL[t.type] ?? t.type}
+                      {t.planName && `・${t.planName}`}
+                    </span>
+                    <span className="text-xs text-ink-light">
+                      {new Date(t.createdAt).toLocaleString("zh-TW", {
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-ink-muted">
+                    本金 {t.principalDelta >= 0 ? "+" : ""}
+                    {t.principalDelta.toLocaleString()}／贈額 {t.bonusDelta >= 0 ? "+" : ""}
+                    {t.bonusDelta.toLocaleString()}
+                    {t.soldByName && `・銷售：${t.soldByName}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {showTopupDialog && (
+        <StoredValueTopupDialog
+          customerId={detail.profile.id}
+          plans={activePlans}
+          staffOptions={staffOptions}
+          onClose={() => setShowTopupDialog(false)}
+          onSuccess={() => {
+            setShowTopupDialog(false);
+            refresh();
+          }}
+        />
       )}
 
       {rescheduleTarget && (

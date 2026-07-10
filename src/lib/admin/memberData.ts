@@ -12,6 +12,7 @@ export type MemberListFilters = {
   birthdayThisMonth?: boolean;
   requiresDepositOnly?: boolean;
   hasNoShowHistory?: boolean;
+  hasStoredValueBalance?: boolean;
 };
 
 export type MemberListRow = {
@@ -119,6 +120,17 @@ export async function fetchMemberList(
   if (noShowRes.error) throw noShowRes.error;
   if (completedRes.error) throw completedRes.error;
   if (checkoutsRes.error) throw checkoutsRes.error;
+
+  if (filters.hasStoredValueBalance) {
+    const balancesRes = await supabase
+      .from("stored_value_accounts")
+      .select("customer_id")
+      .in("customer_id", candidateIds)
+      .or("principal_balance.gt.0,bonus_balance.gt.0");
+    if (balancesRes.error) throw balancesRes.error;
+    const hasBalanceIds = new Set((balancesRes.data ?? []).map((r) => r.customer_id));
+    candidates = candidates.filter((c) => hasBalanceIds.has(c.id));
+  }
 
   const totalSpendByCustomer = new Map<string, number>();
   for (const row of checkoutsRes.data ?? []) {

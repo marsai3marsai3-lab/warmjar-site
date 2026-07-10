@@ -51,12 +51,15 @@ export default async function CheckoutListPage({ searchParams }: { searchParams:
       </div>
 
       {isOwnerRole(profile.role) && (
-        <div className="flex gap-2 text-sm">
+        <div className="flex flex-wrap gap-3 text-sm">
           <Link href="/admin/reports/daily" className="text-terracotta underline">
             日結報表
           </Link>
           <Link href="/admin/commission-rates" className="text-terracotta underline">
             抽成率設定
+          </Link>
+          <Link href="/admin/stored-value-plans" className="text-terracotta underline">
+            儲值方案設定
           </Link>
         </div>
       )}

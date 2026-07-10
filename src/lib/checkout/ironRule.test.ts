@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { allocateCheckoutDiscounts } from "./discountAllocation";
 import { calculateCommissionAmount, resolveCommissionRate } from "./commissionRate";
+import { allocateStoredValueDeduction } from "@/lib/storedValue/storedValueAllocation";
 
 /**
  * CLAUDE.md 商業規則核心：「師傅抽成一律以服務面額計算，與客人實付金額
@@ -56,5 +57,25 @@ describe("鐵律：客人用折扣價付款，抽成仍按 face_value 計算", (
 
     expect(calculateCommissionAmount(itemA.faceValue, rateA.rate)).toBe(1026); // round(2280*0.45)
     expect(calculateCommissionAmount(itemB.faceValue, rateB.rate)).toBe(512); // round(1280*0.40)
+  });
+
+  it("184) 【Phase 5 延伸】用儲值（含贈額）支付的訂單，抽成仍按 face_value 計算，跟付款方式無關", () => {
+    const faceValue = 2280;
+    const rate = resolveCommissionRate({ staffServiceOverride: null, serviceDefaultRate: 40, staffDefaultRate: 35 });
+
+    // 客人用儲值付款，餘額本金 1000、贈額 500，支付 1200（低於面額）
+    const storedValue = allocateStoredValueDeduction(1200, 1000, 500);
+    expect(storedValue.bonusUsed).toBe(500);
+    expect(storedValue.principalUsed).toBe(700);
+    expect(storedValue.bonusUsed + storedValue.principalUsed).toBe(1200); // 客人實付（用儲值抵）1200，低於面額 2280
+
+    // 抽成完全不看儲值扣款金額，只看 face_value
+    const commission = calculateCommissionAmount(faceValue, rate.rate);
+    expect(commission).toBe(912); // round(2280 * 0.40)
+
+    // 反證：如果錯用儲值扣款總額去算，結果會不一樣
+    const wrongCommission = calculateCommissionAmount(storedValue.bonusUsed + storedValue.principalUsed, rate.rate);
+    expect(wrongCommission).toBe(480); // round(1200 * 0.40)
+    expect(commission).not.toBe(wrongCommission);
   });
 });

@@ -79,6 +79,38 @@ export default async function DailyReportPage({ searchParams }: { searchParams: 
       </section>
 
       <section className="rounded-xl border border-cream-border bg-white p-3 text-sm">
+        <p className="font-medium text-ink">儲值收入</p>
+        <p className="mb-2 text-xs text-terracotta-dark">
+          現金流入，非營收——收到的是預收款，屬遞延負債，客人消費兌現時才轉為營收
+        </p>
+        <div className="flex justify-between">
+          <span className="text-ink-muted">今日儲值本金（實際收到的現金）</span>
+          <span className="text-ink">NT$ {report.storedValueTopupPrincipalToday.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-ink-muted">今日贈送贈額（非現金，僅帳面增加負債）</span>
+          <span className="text-ink">NT$ {report.storedValueTopupBonusToday.toLocaleString()}</span>
+        </div>
+        <div className="mt-1 flex justify-between border-t border-cream-border pt-1 font-medium">
+          <span className="text-ink">今日儲值現金流入合計（只算本金）</span>
+          <span className="text-ink">NT$ {report.storedValueTopupPrincipalToday.toLocaleString()}</span>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-cream-border bg-white p-3 text-sm">
+        <p className="font-medium text-ink">儲值消耗</p>
+        <p className="mb-2 text-xs text-ink-light">已計入上方「當日營收」，這裡只是拆解本金/贈額比例方便對帳，不要重複加總</p>
+        <div className="flex justify-between">
+          <span className="text-ink-muted">今日消耗本金</span>
+          <span className="text-ink">NT$ {report.storedValueConsumePrincipalToday.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-ink-muted">今日消耗贈額</span>
+          <span className="text-ink">NT$ {report.storedValueConsumeBonusToday.toLocaleString()}</span>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-cream-border bg-white p-3 text-sm">
         <p className="mb-2 font-medium text-ink">師傅業績與抽成</p>
         {report.staffPerformance.length === 0 && <p className="text-ink-light">無資料</p>}
         {report.staffPerformance.map((s) => (

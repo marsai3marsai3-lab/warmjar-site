@@ -6,6 +6,7 @@ import { AlertCircle, Check, Trash2 } from "lucide-react";
 import type { CheckoutCandidateAppointment } from "@/lib/checkout/checkoutData";
 import { allocateCheckoutDiscounts, type DiscountSpec } from "@/lib/checkout/discountAllocation";
 import { isPaymentComplete, remainingDue } from "@/lib/checkout/checkoutValidation";
+import { allocateStoredValueDeduction } from "@/lib/storedValue/storedValueAllocation";
 import { CustomerSearchField } from "./CustomerSearchField";
 import type { CustomerCandidate } from "@/lib/admin/customerAutofill";
 import { createCheckout, resolveWalkInCustomer } from "@/app/admin/(ops)/checkout/_actions";
@@ -70,6 +71,11 @@ export function CheckoutComposer({
   const [cashAmount, setCashAmount] = useState("");
   const [cardAmount, setCardAmount] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
+  const [storedValueAmount, setStoredValueAmount] = useState("");
+  const [storedValueBalance, setStoredValueBalance] = useState<{
+    principalBalance: number;
+    bonusBalance: number;
+  } | null>(null);
 
   const [categories, setCategories] = useState<ServiceCategoryOption[] | null>(null);
   const [addVariantId, setAddVariantId] = useState("");
@@ -111,6 +117,29 @@ export function CheckoutComposer({
       cancelled = true;
     };
   }, [items]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      if (!customerId) {
+        setStoredValueBalance(null);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/admin/checkout/stored-value-balance?customerId=${customerId}`);
+        const data = await res.json();
+        if (!cancelled) setStoredValueBalance(data.balance ?? null);
+      } catch {
+        // ignore
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [customerId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,16 +258,31 @@ export function CheckoutComposer({
   const totalPaidAmount = allocated.reduce((sum, a) => sum + a.paidAmount, 0);
   const depositApplied = availableDeposit?.amount ?? 0;
 
-  const paymentsTotal = [cashAmount, cardAmount, transferAmount].reduce(
+  const storedValueTotal = (storedValueBalance?.principalBalance ?? 0) + (storedValueBalance?.bonusBalance ?? 0);
+  const storedValueAmountNum = Number(storedValueAmount) || 0;
+  const storedValuePreview = allocateStoredValueDeduction(
+    storedValueAmountNum,
+    storedValueBalance?.principalBalance ?? 0,
+    storedValueBalance?.bonusBalance ?? 0
+  );
+  const otherPaymentsTotal = [cashAmount, cardAmount, transferAmount].reduce(
     (sum, v) => sum + (Number(v) || 0),
     0
   );
+  const paymentsTotal = otherPaymentsTotal + storedValueAmountNum;
   const remaining = remainingDue(totalPaidAmount, depositApplied, paymentsTotal);
+  const storedValueExceedsBalance = storedValueAmountNum > storedValueTotal;
   const canSubmit =
     !!customerId &&
     items.length > 0 &&
     isPaymentComplete(paymentsTotal, depositApplied, totalPaidAmount) &&
+    !storedValueExceedsBalance &&
     !submitting;
+
+  function fillMaxStoredValue() {
+    const remainingBeforeStoredValue = totalPaidAmount - depositApplied - otherPaymentsTotal;
+    setStoredValueAmount(String(Math.max(0, Math.min(remainingBeforeStoredValue, storedValueTotal))));
+  }
 
   async function handleSubmit() {
     if (!customerId) return;
@@ -249,6 +293,7 @@ export function CheckoutComposer({
         { method: "cash", amount: Number(cashAmount) || 0 },
         { method: "ecpay_credit", amount: Number(cardAmount) || 0 },
         { method: "ecpay_transfer", amount: Number(transferAmount) || 0 },
+        { method: "stored_value", amount: storedValueAmountNum },
       ].filter((p) => p.amount > 0);
 
       const result = await createCheckout({
@@ -519,6 +564,38 @@ export function CheckoutComposer({
             />
           </div>
         ))}
+        {storedValueTotal > 0 && (
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-12 text-sm text-ink-muted">儲值</span>
+              <input
+                type="number"
+                value={storedValueAmount}
+                onChange={(e) => setStoredValueAmount(e.target.value)}
+                className="flex-1 rounded-lg border border-cream-border px-3 py-1.5 text-sm"
+                placeholder="0"
+              />
+              <span className="shrink-0 text-xs text-ink-light">可用 NT${storedValueTotal.toLocaleString()}</span>
+              <button
+                onClick={fillMaxStoredValue}
+                className="shrink-0 rounded-full border border-cream-border px-2 py-1 text-xs text-ink-muted"
+              >
+                全部扣抵
+              </button>
+            </div>
+            <p className="mt-1 pl-14 text-xs text-ink-light">
+              （本金 NT${storedValueBalance?.principalBalance.toLocaleString()}＋贈額 NT$
+              {storedValueBalance?.bonusBalance.toLocaleString()}）
+              {storedValueAmountNum > 0 && !storedValueExceedsBalance && (
+                <>
+                  ・將扣除：贈額 NT${storedValuePreview.bonusUsed.toLocaleString()}＋本金 NT$
+                  {storedValuePreview.principalUsed.toLocaleString()}
+                </>
+              )}
+              {storedValueExceedsBalance && <span className="text-terracotta-dark">・超過可用餘額</span>}
+            </p>
+          </div>
+        )}
         <div className="flex items-center justify-between text-sm">
           <span className="text-ink-muted">
             已輸入 NT$ {paymentsTotal.toLocaleString()} ／ 尚需 NT$ {(totalPaidAmount - depositApplied).toLocaleString()}

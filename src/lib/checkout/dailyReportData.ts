@@ -11,6 +11,10 @@ export type DailyReport = {
   revenueTotal: number;
   depositIncomeToday: number;
   depositForfeitedToday: number;
+  storedValueTopupPrincipalToday: number;
+  storedValueTopupBonusToday: number;
+  storedValueConsumePrincipalToday: number;
+  storedValueConsumeBonusToday: number;
   staffPerformance: DailyReportStaffRow[];
   checkoutCount: number;
 };
@@ -67,6 +71,33 @@ export async function fetchDailyReport(
   if (depositsPaidRes.error) throw depositsPaidRes.error;
   if (forfeitedRes.error) throw forfeitedRes.error;
 
+  // 儲值收入（本金才是真的現金流入，贈額只是帳面負債增加，見
+  // docs/phase-5-stored-value-draft.md 5.3）跟儲值消耗（已經算進上面
+  // 的「當日營收」，這裡只是拆解本金/贈額比例方便對帳，不要重複加總）
+  // ——都用 stored_value_transactions 當唯一真實來源，不是從
+  // checkout_payments 反推。
+  const storedValueTxRes = await supabase
+    .from("stored_value_transactions")
+    .select("type, principal_delta, bonus_delta")
+    .in("type", ["topup", "consume"])
+    .gte("created_at", start)
+    .lt("created_at", end);
+  if (storedValueTxRes.error) throw storedValueTxRes.error;
+
+  let storedValueTopupPrincipalToday = 0;
+  let storedValueTopupBonusToday = 0;
+  let storedValueConsumePrincipalToday = 0;
+  let storedValueConsumeBonusToday = 0;
+  for (const tx of storedValueTxRes.data ?? []) {
+    if (tx.type === "topup") {
+      storedValueTopupPrincipalToday += tx.principal_delta;
+      storedValueTopupBonusToday += tx.bonus_delta;
+    } else if (tx.type === "consume") {
+      storedValueConsumePrincipalToday += -tx.principal_delta;
+      storedValueConsumeBonusToday += -tx.bonus_delta;
+    }
+  }
+
   const revenueByMethodMap = new Map<string, number>();
   for (const p of paymentsRes.data ?? []) {
     revenueByMethodMap.set(p.method, (revenueByMethodMap.get(p.method) ?? 0) + p.amount);
@@ -96,6 +127,10 @@ export async function fetchDailyReport(
     revenueTotal,
     depositIncomeToday: (depositsPaidRes.data ?? []).reduce((sum, d) => sum + d.amount, 0),
     depositForfeitedToday: (forfeitedRes.data ?? []).reduce((sum, r) => sum + r.amount, 0),
+    storedValueTopupPrincipalToday,
+    storedValueTopupBonusToday,
+    storedValueConsumePrincipalToday,
+    storedValueConsumeBonusToday,
     staffPerformance: [...staffMap.values()].sort((a, b) => b.faceValueTotal - a.faceValueTotal),
     checkoutCount: checkoutIds.length,
   };
@@ -123,6 +158,18 @@ export function buildDailyReportCsv(report: DailyReport): string {
   lines.push("訂金收入（獨立於當日營收）");
   lines.push(`今日收訂金,${report.depositIncomeToday}`);
   lines.push(`今日沒收,${report.depositForfeitedToday}`);
+  lines.push("");
+  lines.push("儲值收入（現金流入，非營收——收到的是預收款，屬遞延負債，客人消費兌現時才轉為營收）");
+  lines.push(`今日儲值本金（實際收到的現金）,${report.storedValueTopupPrincipalToday}`);
+  lines.push(`今日贈送贈額（非現金，僅帳面增加負債）,${report.storedValueTopupBonusToday}`);
+  lines.push(`今日儲值現金流入合計（只算本金）,${report.storedValueTopupPrincipalToday}`);
+  lines.push("");
+  lines.push("儲值消耗（已計入上方「當日營收」，這裡只是拆解本金/贈額比例方便對帳，不要重複加總）");
+  lines.push(`今日消耗本金,${report.storedValueConsumePrincipalToday}`);
+  lines.push(`今日消耗贈額,${report.storedValueConsumeBonusToday}`);
+  lines.push(
+    `合計（已算進當日營收）,${report.storedValueConsumePrincipalToday + report.storedValueConsumeBonusToday}`
+  );
   lines.push("");
   lines.push("師傅業績與抽成");
   lines.push("師傅,面額小計,抽成小計");

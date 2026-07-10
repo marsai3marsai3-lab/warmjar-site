@@ -201,6 +201,8 @@ export type CheckoutDetail = {
   subtotalFaceValue: number;
   discountAmount: number;
   depositApplied: number;
+  storedValuePrincipalUsed: number;
+  storedValueBonusUsed: number;
   totalPaidAmount: number;
   status: string;
   voidReason: string | null;
@@ -218,6 +220,7 @@ export async function fetchCheckoutDetail(
     .from("checkouts")
     .select(
       `id, customer_id, checkout_at, subtotal_face_value, discount_amount, deposit_applied,
+       stored_value_principal_used, stored_value_bonus_used,
        total_paid_amount, status, void_reason, voided_at, reopened_from_checkout_id,
        customers ( name )`
     )
@@ -248,6 +251,8 @@ export async function fetchCheckoutDetail(
     subtotalFaceValue: checkoutRes.data.subtotal_face_value,
     discountAmount: checkoutRes.data.discount_amount,
     depositApplied: checkoutRes.data.deposit_applied,
+    storedValuePrincipalUsed: checkoutRes.data.stored_value_principal_used,
+    storedValueBonusUsed: checkoutRes.data.stored_value_bonus_used,
     totalPaidAmount: checkoutRes.data.total_paid_amount,
     status: checkoutRes.data.status,
     voidReason: checkoutRes.data.void_reason,

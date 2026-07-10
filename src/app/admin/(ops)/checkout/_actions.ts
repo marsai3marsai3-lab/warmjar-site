@@ -10,6 +10,8 @@ import { fetchEffectiveCommissionRates } from "@/lib/checkout/commissionRateData
 import { derivePaymentMethod, isPaymentComplete } from "@/lib/checkout/checkoutValidation";
 import { canVoidCheckout } from "@/lib/checkout/checkoutState";
 import { findOrCreateCustomer } from "@/lib/booking/customers";
+import { allocateStoredValueDeduction } from "@/lib/storedValue/storedValueAllocation";
+import { adjustStoredValueBalance, fetchStoredValueAccount } from "@/lib/storedValue/storedValueData";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -115,6 +117,23 @@ export async function createCheckout(input: CreateCheckoutInput): Promise<Create
       return { ok: false, error: "付款總額與應收金額不符，請重新確認" };
     }
 
+    // 儲值扣款：贈額優先、再扣本金（見 docs/stored-value-rules.md）。
+    // 這裡只算出要扣多少、驗證餘額夠不夠，實際扣款寫入放在下面
+    // items/commission 都成功之後，避免流程中途失敗還是扣了餘額。
+    const storedValuePayment = input.payments.find((p) => p.method === "stored_value");
+    let storedValueAllocation = { bonusUsed: 0, principalUsed: 0 };
+    if (storedValuePayment && storedValuePayment.amount > 0) {
+      const account = await fetchStoredValueAccount(supabase, input.customerId);
+      if (storedValuePayment.amount > account.principalBalance + account.bonusBalance) {
+        return { ok: false, error: "儲值餘額不足，請調整金額或搭配其他付款方式" };
+      }
+      storedValueAllocation = allocateStoredValueDeduction(
+        storedValuePayment.amount,
+        account.principalBalance,
+        account.bonusBalance
+      );
+    }
+
     const rateMap = await fetchEffectiveCommissionRates(
       supabase,
       input.items.map((i) => ({ staffId: i.staffId, serviceId: variantById.get(i.serviceVariantId)!.service_id }))
@@ -129,6 +148,8 @@ export async function createCheckout(input: CreateCheckoutInput): Promise<Create
         total_paid_amount: totalPaidAmount,
         discount_amount: discountAmount,
         deposit_applied: depositApplied,
+        stored_value_principal_used: storedValueAllocation.principalUsed,
+        stored_value_bonus_used: storedValueAllocation.bonusUsed,
         payment_method: derivePaymentMethod(input.payments),
         status: "completed",
         reopened_from_checkout_id: input.reopenedFromCheckoutId ?? null,
@@ -191,6 +212,30 @@ export async function createCheckout(input: CreateCheckoutInput): Promise<Create
         if (depositUpdate.error) throw new Error("訂金折抵標記失敗");
       }
 
+      if (storedValueAllocation.principalUsed > 0 || storedValueAllocation.bonusUsed > 0) {
+        // 流水帳先寫、餘額快取後更新——流水帳是唯一真實來源，餘額是
+        // 可重算的快取（見既有設計慣例）。順序反過來的話，萬一餘額
+        // 更新成功但流水寫入失敗，會留下「扣了錢但沒有紀錄」的錢，
+        // 追不回來；現在的順序失敗時頂多是「有紀錄但快取還沒反映」，
+        // 快取可以重算修復。
+        const svTxIns = await supabase.from("stored_value_transactions").insert({
+          account_customer_id: input.customerId,
+          type: "consume",
+          principal_delta: -storedValueAllocation.principalUsed,
+          bonus_delta: -storedValueAllocation.bonusUsed,
+          related_checkout_id: checkoutId,
+          operator_id: profile.id,
+        });
+        if (svTxIns.error) throw new Error("儲值扣款流水寫入失敗");
+
+        await adjustStoredValueBalance(
+          supabase,
+          input.customerId,
+          -storedValueAllocation.principalUsed,
+          -storedValueAllocation.bonusUsed
+        );
+      }
+
       const appointmentIds = [
         ...new Set(input.items.map((i) => i.appointmentId).filter((id): id is string => !!id)),
       ];
@@ -248,7 +293,11 @@ export async function voidCheckout(checkoutId: string, reason: string): Promise<
     const { profile } = await requireOwnerForAction();
     const supabase = createAdminClient();
 
-    const checkoutRes = await supabase.from("checkouts").select("id, status").eq("id", checkoutId).maybeSingle();
+    const checkoutRes = await supabase
+      .from("checkouts")
+      .select("id, status, customer_id")
+      .eq("id", checkoutId)
+      .maybeSingle();
     if (checkoutRes.error || !checkoutRes.data) return { ok: false, error: "找不到這張結帳單" };
     if (!canVoidCheckout(checkoutRes.data.status)) {
       return { ok: false, error: "這張結帳單目前狀態不能作廢" };
@@ -276,6 +325,32 @@ export async function voidCheckout(checkoutId: string, reason: string): Promise<
     }
 
     await supabase.from("deposit_records").update({ applied_checkout_id: null }).eq("applied_checkout_id", checkoutId);
+
+    // 儲值回沖：這張單如果用了儲值支付，原路退回本金/贈額，寫一筆
+    // 'void_reversal'（不是 'refund'——語意不同，見
+    // docs/phase-5-stored-value-draft.md 3.5）。
+    const svConsumeRes = await supabase
+      .from("stored_value_transactions")
+      .select("principal_delta, bonus_delta")
+      .eq("related_checkout_id", checkoutId)
+      .eq("type", "consume")
+      .maybeSingle();
+    if (svConsumeRes.data) {
+      const reversalPrincipal = -svConsumeRes.data.principal_delta;
+      const reversalBonus = -svConsumeRes.data.bonus_delta;
+
+      const reversalTxIns = await supabase.from("stored_value_transactions").insert({
+        account_customer_id: checkoutRes.data.customer_id,
+        type: "void_reversal",
+        principal_delta: reversalPrincipal,
+        bonus_delta: reversalBonus,
+        related_checkout_id: checkoutId,
+        operator_id: profile.id,
+      });
+      if (!reversalTxIns.error) {
+        await adjustStoredValueBalance(supabase, checkoutRes.data.customer_id, reversalPrincipal, reversalBonus);
+      }
+    }
 
     await writeAuditLog(supabase, {
       actorId: profile.id,
