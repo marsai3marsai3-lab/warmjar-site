@@ -159,6 +159,43 @@ export function BookingWizard() {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [otpVerified, setOtpVerified] = useState(false);
 
+  // Phase 6 A.1：只有從 LINE 內開啟（liff.isInClient()）才嘗試免驗證
+  // 捷徑，一般瀏覽器訪客完全不受影響、不會載入 LIFF SDK。查不到綁定
+  // 記錄就靜默失敗，照舊走原本的手機 OTP 流程。
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
+      if (!liffId) return;
+      try {
+        const liffModule = await import("@line/liff");
+        const liff = liffModule.default;
+        await liff.init({ liffId });
+        if (!liff.isInClient() || !liff.isLoggedIn()) return;
+
+        const idToken = liff.getIDToken();
+        if (!idToken) return;
+
+        const res = await fetch("/api/book/liff-autofill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
+        const data = await res.json();
+        if (cancelled || !data.bound) return;
+
+        setCustomerName((prev) => prev || data.name || "");
+        setCustomerPhone(data.phone);
+        setOtpVerified(true);
+      } catch {
+        // 靜默失敗，維持原本 OTP 流程——這是加分捷徑，不是必要路徑。
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSendOtp() {
     setSendingOtp(true);
     setSendOtpError(null);

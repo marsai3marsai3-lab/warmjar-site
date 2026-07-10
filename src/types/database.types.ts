@@ -994,6 +994,7 @@ export type Database = {
           display_name: string | null
           id: string
           is_active: boolean
+          line_notify_blocked: boolean
           line_user_id: string | null
           phone: string | null
           role: string
@@ -1005,6 +1006,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_active?: boolean
+          line_notify_blocked?: boolean
           line_user_id?: string | null
           phone?: string | null
           role: string
@@ -1016,11 +1018,114 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_active?: boolean
+          line_notify_blocked?: boolean
           line_user_id?: string | null
           phone?: string | null
           role?: string
         }
         Relationships: []
+      }
+      message_templates: {
+        Row: {
+          channel: string
+          content: Json
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          channel?: string
+          content: Json
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          channel?: string
+          content?: Json
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications_log: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          error_message: string | null
+          id: string
+          line_message_id: string | null
+          operator_id: string | null
+          related_appointment_id: string | null
+          status: string
+          template_key: string
+          triggered_by: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          line_message_id?: string | null
+          operator_id?: string | null
+          related_appointment_id?: string | null
+          status: string
+          template_key: string
+          triggered_by: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          error_message?: string | null
+          id?: string
+          line_message_id?: string | null
+          operator_id?: string | null
+          related_appointment_id?: string | null
+          status?: string
+          template_key?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_log_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_log_operator_id_fkey"
+            columns: ["operator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_log_related_appointment_id_fkey"
+            columns: ["related_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_records: {
         Row: {

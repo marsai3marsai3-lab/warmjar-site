@@ -10,6 +10,8 @@ import {
   fetchStoredValuePlans,
   fetchStoredValueTransactions,
 } from "@/lib/storedValue/storedValueData";
+import { fetchMessageTemplates, fetchManualSendCountToday } from "@/lib/line/messageTemplatesData";
+import { taipeiTodayISO } from "@/lib/admin/dateUtils";
 import { MemberDetailView } from "@/components/admin/MemberDetailView";
 
 type Params = Promise<{ id: string }>;
@@ -19,15 +21,25 @@ export default async function AdminMemberDetailPage({ params }: { params: Params
   const { profile } = await requireAdminUser();
   const supabase = createAdminClient();
 
-  const [detail, tagOptions, storedValueAccount, storedValueTransactions, activePlans, staffOptions] =
-    await Promise.all([
-      fetchMemberDetail(supabase, id),
-      fetchMemberTagOptions(supabase),
-      fetchStoredValueAccount(supabase, id),
-      fetchStoredValueTransactions(supabase, id),
-      fetchStoredValuePlans(supabase, true),
-      fetchStaffOptions(supabase),
-    ]);
+  const [
+    detail,
+    tagOptions,
+    storedValueAccount,
+    storedValueTransactions,
+    activePlans,
+    staffOptions,
+    messageTemplates,
+    sentTodayCount,
+  ] = await Promise.all([
+    fetchMemberDetail(supabase, id),
+    fetchMemberTagOptions(supabase),
+    fetchStoredValueAccount(supabase, id),
+    fetchStoredValueTransactions(supabase, id),
+    fetchStoredValuePlans(supabase, true),
+    fetchStaffOptions(supabase),
+    fetchMessageTemplates(supabase, true),
+    fetchManualSendCountToday(supabase, id, taipeiTodayISO()),
+  ]);
 
   if (!detail) notFound();
 
@@ -40,6 +52,8 @@ export default async function AdminMemberDetailPage({ params }: { params: Params
       storedValueTransactions={storedValueTransactions}
       activePlans={activePlans}
       staffOptions={staffOptions}
+      messageTemplates={messageTemplates.map((t) => ({ key: t.key, name: t.name }))}
+      sentTodayCount={sentTodayCount}
     />
   );
 }

@@ -24,6 +24,7 @@ import { canShowRefundButton } from "@/lib/admin/depositActions";
 import { RescheduleDialog } from "./RescheduleDialog";
 import { RefundDepositButton } from "./RefundDepositButton";
 import { StoredValueTopupDialog } from "./StoredValueTopupDialog";
+import { SendLineMessageDialog } from "./SendLineMessageDialog";
 
 const TABS = ["基本資料", "預約歷史", "訂金與爽約", "服務紀錄", "儲值"] as const;
 type Tab = (typeof TABS)[number];
@@ -59,6 +60,8 @@ export function MemberDetailView({
   storedValueTransactions,
   activePlans,
   staffOptions,
+  messageTemplates,
+  sentTodayCount,
 }: {
   detail: MemberDetail;
   tagOptions: TagOption[];
@@ -67,6 +70,8 @@ export function MemberDetailView({
   storedValueTransactions: StoredValueTransaction[];
   activePlans: StoredValuePlan[];
   staffOptions: StaffOption[];
+  messageTemplates: { key: string; name: string }[];
+  sentTodayCount: number;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -87,6 +92,7 @@ export function MemberDetailView({
     date: string;
   } | null>(null);
   const [showTopupDialog, setShowTopupDialog] = useState(false);
+  const [showSendDialog, setShowSendDialog] = useState(false);
 
   const isBlacklisted = detail.profile.status === "blacklisted";
   const storedValueTotal = storedValueAccount.principalBalance + storedValueAccount.bonusBalance;
@@ -209,11 +215,20 @@ export function MemberDetailView({
         </div>
         <p className="mt-1 text-xs text-ink-light">
           狀態：{isBlacklisted ? <span className="text-terracotta-dark">● 黑名單</span> : <span>● 正常</span>}
+          <span className="ml-3">LINE：{detail.profile.lineBound ? "已綁定" : "尚未綁定"}</span>
         </p>
         {storedValueTotal > 0 && (
           <p className="mt-1 text-sm font-medium text-terracotta-dark">
             儲值餘額 NT$ {storedValueTotal.toLocaleString()}
           </p>
+        )}
+        {detail.profile.lineBound && (
+          <button
+            onClick={() => setShowSendDialog(true)}
+            className="mt-2 rounded-full border border-terracotta px-3 py-1 text-xs text-terracotta"
+          >
+            發送 LINE 訊息
+          </button>
         )}
       </div>
 
@@ -522,6 +537,19 @@ export function MemberDetailView({
           onClose={() => setShowTopupDialog(false)}
           onSuccess={() => {
             setShowTopupDialog(false);
+            refresh();
+          }}
+        />
+      )}
+
+      {showSendDialog && (
+        <SendLineMessageDialog
+          customerId={detail.profile.id}
+          templates={messageTemplates}
+          sentTodayCount={sentTodayCount}
+          onClose={() => setShowSendDialog(false)}
+          onSuccess={() => {
+            setShowSendDialog(false);
             refresh();
           }}
         />

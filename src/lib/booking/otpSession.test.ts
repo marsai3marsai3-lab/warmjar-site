@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   createBookingSession,
+  createMemberSession,
   createOtpChallenge,
   verifyBookingSession,
+  verifyMemberSession,
   verifyOtpChallenge,
 } from "./otpSession";
 
@@ -49,5 +51,27 @@ describe("otpSession", () => {
 
     const later = new Date(now.getTime() + 21 * 60 * 1000);
     expect(verifyBookingSession(token, PHONE, SECRET, later)).toBe(false);
+  });
+
+  it("210) member session：驗證成功回傳 customerId/lineUserId，而不只是 boolean", () => {
+    const now = new Date("2026-07-10T02:00:00.000Z");
+    const { token } = createMemberSession("customer-1", "U1234567890", SECRET, now);
+    expect(verifyMemberSession(token, SECRET, now)).toEqual({
+      customerId: "customer-1",
+      lineUserId: "U1234567890",
+    });
+  });
+
+  it("211) member session 7 天後過期", () => {
+    const now = new Date("2026-07-10T02:00:00.000Z");
+    const { token } = createMemberSession("customer-1", "U1234567890", SECRET, now);
+    const eightDaysLater = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000);
+    expect(verifyMemberSession(token, SECRET, eightDaysLater)).toBeNull();
+  });
+
+  it("212) booking session token 不能被當成 member session 使用（kind 互斥）", () => {
+    const now = new Date("2026-07-10T02:00:00.000Z");
+    const { token } = createBookingSession(PHONE, SECRET, now);
+    expect(verifyMemberSession(token, SECRET, now)).toBeNull();
   });
 });

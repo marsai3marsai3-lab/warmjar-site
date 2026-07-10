@@ -61,6 +61,9 @@ export default async function CheckoutListPage({ searchParams }: { searchParams:
           <Link href="/admin/stored-value-plans" className="text-terracotta underline">
             儲值方案設定
           </Link>
+          <Link href="/admin/message-templates" className="text-terracotta underline">
+            LINE 通知範本設定
+          </Link>
         </div>
       )}
 

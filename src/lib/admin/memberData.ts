@@ -24,6 +24,7 @@ export type MemberListRow = {
   // Phase 4 接上真值：Σ 已完成結帳單的 total_paid_amount（作廢的單不算）。
   totalSpend: number;
   noShowCount: number;
+  lineBound: boolean;
 };
 
 const LIST_LIMIT = 200;
@@ -68,7 +69,10 @@ export async function fetchMemberList(
   filters: MemberListFilters,
   todayISO: string
 ): Promise<MemberListRow[]> {
-  let query = supabase.from("customers").select("id, name, phone, status, birthday, last_visit_at").limit(LIST_LIMIT);
+  let query = supabase
+    .from("customers")
+    .select("id, name, phone, status, birthday, last_visit_at, profile_id, profiles ( line_user_id )")
+    .limit(LIST_LIMIT);
 
   const parsedSearch = filters.search ? classifySearch(filters.search) : null;
   if (parsedSearch?.field === "phone") {
@@ -182,5 +186,6 @@ export async function fetchMemberList(
     lastVisitAt: resolveLastVisit(c.last_visit_at, lastCompletedByCustomer.get(c.id) ?? null),
     totalSpend: totalSpendByCustomer.get(c.id) ?? 0,
     noShowCount: noShowCountByCustomer.get(c.id) ?? 0,
+    lineBound: !!c.profiles?.line_user_id,
   }));
 }

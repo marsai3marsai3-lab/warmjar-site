@@ -16,6 +16,7 @@ export type MemberProfile = {
   status: string;
   rating: number | null;
   tags: TagOption[];
+  lineBound: boolean;
 };
 
 export type MemberAppointmentRow = {
@@ -65,7 +66,7 @@ export async function fetchMemberDetail(
 ): Promise<MemberDetail | null> {
   const customerRes = await supabase
     .from("customers")
-    .select("id, name, phone, email, gender, birthday, source, internal_note, status, rating")
+    .select("id, name, phone, email, gender, birthday, source, internal_note, status, rating, profile_id, profiles ( line_user_id )")
     .eq("id", customerId)
     .maybeSingle();
   if (customerRes.error) throw customerRes.error;
@@ -157,6 +158,7 @@ export async function fetchMemberDetail(
       status: customerRes.data.status,
       rating: customerRes.data.rating,
       tags,
+      lineBound: !!customerRes.data.profiles?.line_user_id,
     },
     appointments,
     deposits,

@@ -166,7 +166,14 @@ export function MemberListView({ tagOptions }: { tagOptions: TagOption[] }) {
             className="block rounded-xl border border-cream-border bg-white p-3 text-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="font-medium text-ink">{m.name}</span>
+              <span className="flex items-center gap-1.5 font-medium text-ink">
+                {m.name}
+                {m.lineBound && (
+                  <span className="rounded-full bg-olive/10 px-1.5 py-0.5 text-[10px] font-normal text-olive-dark">
+                    LINE
+                  </span>
+                )}
+              </span>
               <span className="text-ink-light">{m.phone}</span>
             </div>
             {m.tags.length > 0 && (

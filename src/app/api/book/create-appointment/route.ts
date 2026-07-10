@@ -16,6 +16,9 @@ import { createDepositRecord } from "@/lib/booking/depositRecords";
 import { generateMerchantTradeNo } from "@/lib/booking/ecpayOrder";
 import { isCustomerBlacklisted, SLOT_UNAVAILABLE_RESPONSE } from "@/lib/booking/blacklistPolicy";
 import { BOOKING_BUFFER_MINUTES, DEPOSIT_HOLD_MINUTES } from "@/lib/booking/constants";
+import { formatWeekdayLabel } from "@/lib/admin/dateUtils";
+import { sendNotification } from "@/lib/line/notificationSender";
+import { buildDepositPaymentUrl, buildMemberUrl } from "@/lib/line/liffLinks";
 
 const SESSION_COOKIE = "book_session";
 
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
 
   const variantsRes = await supabase
     .from("service_variants")
-    .select("id, duration_minutes, face_value_price")
+    .select("id, name, duration_minutes, face_value_price")
     .in("id", serviceVariantIds);
   if (variantsRes.error || !variantsRes.data) {
     return NextResponse.json({ error: "服務項目資料錯誤，請重新選擇" }, { status: 400 });
@@ -146,6 +149,50 @@ export async function POST(request: Request) {
       amount: depositPolicy.amount,
       merchantTradeNo,
     });
+  }
+
+  // 即時通知（system_event，不進排程）：預約成功一律發；有訂金的話
+  // 緊接著再發一則付款連結。失敗不影響預約本身成立——客人沒綁 LINE
+  // 或推播失敗都只是 notifications_log 多一筆 skipped/failed，不能讓
+  // 通知系統的問題擋掉已經成立的預約。
+  try {
+    const staffRes = await supabase.from("staff").select("name").eq("id", resolvedStaffId).maybeSingle();
+    const serviceName = variantsRes.data.map((v) => v.name).join("、");
+    const commonVars = {
+      name: customerName,
+      date,
+      weekday: formatWeekdayLabel(date),
+      startTime,
+      staffName: staffRes.data?.name ?? "未指定",
+      serviceName,
+      memberUrl: buildMemberUrl(),
+    };
+
+    await sendNotification(supabase, {
+      customerId: customer.id,
+      templateKey: "booking_confirmed",
+      relatedAppointmentId: result.appointmentIds[0],
+      triggeredBy: "system_event",
+      vars: commonVars,
+    });
+
+    if (depositPolicy.requiresDeposit && merchantTradeNo) {
+      await sendNotification(supabase, {
+        customerId: customer.id,
+        templateKey: "deposit_payment_link",
+        relatedAppointmentId: result.appointmentIds[0],
+        triggeredBy: "system_event",
+        vars: {
+          ...commonVars,
+          depositAmount: String(depositPolicy.amount),
+          expiresAt: expiresAt ?? "",
+          paymentUrl: buildDepositPaymentUrl(merchantTradeNo),
+        },
+      });
+    }
+  } catch {
+    // 通知失敗不影響預約結果，靜默略過——notifications_log 裡的
+    // failed/skipped 紀錄已經足夠事後排查。
   }
 
   return NextResponse.json({

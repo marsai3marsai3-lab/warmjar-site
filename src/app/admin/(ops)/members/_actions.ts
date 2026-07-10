@@ -5,6 +5,11 @@ import { requireAdminForAction, requireOwnerForAction } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/booking/auditLog";
 import { derivePaymentMethod } from "@/lib/checkout/checkoutValidation";
 import { applyStoredValueTopup } from "@/lib/storedValue/storedValueData";
+import { sendNotification } from "@/lib/line/notificationSender";
+import { fetchManualSendCountToday } from "@/lib/line/messageTemplatesData";
+import { canSendManualNotification } from "@/lib/admin/manualSendPolicy";
+import { taipeiTodayISO } from "@/lib/admin/dateUtils";
+import { buildBookingUrl, buildMemberUrl } from "@/lib/line/liffLinks";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -316,6 +321,64 @@ export async function refundStoredValue(customerId: string): Promise<ActionResul
     });
 
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
+  }
+}
+
+/**
+ * Phase 6 C.2：手動單發，manager+owner 皆可（不是 owner 限定——單發
+ * 一則訊息不是退費/改抽成率那個級別的高風險操作）。決策 3：同一客人
+ * 每日上限 3 則，用 notifications_log 當天 admin_manual+sent 的筆數
+ * 實算，不是前端自己算的計數器。
+ */
+export async function sendManualNotification(customerId: string, templateKey: string): Promise<ActionResult> {
+  try {
+    const { profile } = await requireAdminForAction();
+    const supabase = createAdminClient();
+
+    const sentToday = await fetchManualSendCountToday(supabase, customerId, taipeiTodayISO());
+    if (!canSendManualNotification(sentToday)) {
+      return { ok: false, error: "今天已對這位客人發送 3 則訊息，達每日上限" };
+    }
+
+    const customerRes = await supabase.from("customers").select("name").eq("id", customerId).maybeSingle();
+    if (customerRes.error || !customerRes.data) return { ok: false, error: "找不到這位會員" };
+
+    const recentAppointmentRes = await supabase
+      .from("appointments")
+      .select("appointment_date, start_time, service_variants ( name ), staff ( name )")
+      .eq("customer_id", customerId)
+      .order("appointment_date", { ascending: false })
+      .order("start_time", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .returns<{
+        appointment_date: string;
+        start_time: string;
+        service_variants: { name: string } | null;
+        staff: { name: string } | null;
+      } | null>();
+
+    const result = await sendNotification(supabase, {
+      customerId,
+      templateKey,
+      triggeredBy: "admin_manual",
+      operatorId: profile.id,
+      vars: {
+        name: customerRes.data.name,
+        date: recentAppointmentRes.data?.appointment_date ?? "",
+        startTime: recentAppointmentRes.data?.start_time?.slice(0, 5) ?? "",
+        staffName: recentAppointmentRes.data?.staff?.name ?? "",
+        serviceName: recentAppointmentRes.data?.service_variants?.name ?? "",
+        memberUrl: buildMemberUrl(),
+        bookingUrl: buildBookingUrl(),
+      },
+    });
+
+    if (result.status === "sent") return { ok: true };
+    if (result.status === "skipped") return { ok: false, error: `無法發送：${result.reason}` };
+    return { ok: false, error: `發送失敗：${result.error}` };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
   }

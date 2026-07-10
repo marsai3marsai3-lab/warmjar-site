@@ -294,3 +294,47 @@ commit。
   Vercel 環境變數規劃——四項合併的「上線前基礎設施」phase。
 - 不指定分配優化（`availableStaffIds[0]` 無負載平衡）——優先度低。
 - 服務紀錄照片上傳——綁定 Phase 6 電子同意書機制。
+
+## 2026-07-14 — Phase 6 開工中間決策：cron 頻率偏離採納、lazy-expire 清償
+
+> Phase 6（LINE 整合）尚未驗收完成，本條目只記錄開工過程中幾項確認
+> 採納的技術決策與待辦帳本異動，不是 phase 收官條目。收官條目待真機
+> 驗收（LINE 綁定/推播）通過後另補。
+
+### cron 執行頻率偏離原草案，正式採納
+草案（phase-6-line-integration-draft.md B.5）原本設計
+`/api/cron/notifications` 固定時間觸發（UTC `0 12 * * *`，對應台灣時間
+每天 20:00 一次）。實作時偏離為「cron 每 15 分鐘跑一次＋runtime 用
+`isWithinScheduleWindow` 判斷現在是否落在
+`system_settings.notification_schedule` 設定的時段 ± 容許誤差內」（見
+`notificationSweep.ts` 該函式註解）。理由：Vercel Cron 的觸發時間寫死在
+`vercel.json`，改時間要重新部署；改成「頻繁執行 + 資料庫時段判斷」後，
+後台調整提醒／關懷發送時段當天生效，不用重新部署。`deposit-sweep`
+比照用 `*/10`，對應 30 分鐘訂金保留時長，容許誤差抓法一致。此偏離
+已確認採納，列為定案，不是待審技術債。
+
+### 新增上線前基礎設施待辦：Vercel 方案需升級 Pro
+上述頻率（`*/15`、`*/10`）超出 Vercel **Hobby** 方案 cron 「每天最多
+觸發一次」的限制。**正式上線前必須把 Vercel 專案升級到 Pro 方案**，
+否則兩支 cron route 在 production 不會照 `vercel.json` 設定的頻率
+觸發。併入 2026-07-10 條目定義的「上線前基礎設施」待辦帳本，記為新增
+第五項（原四項：簡訊商串接、lazy-expire 排程、正式環境 SMTP、Vercel
+環境變數規劃）。
+
+### lazy-expire 排程正式清償
+2026-07-10 條目起掛帳、Phase 4／Phase 5 收官時都仍列在「仍掛著」清單
+的 lazy-expire 排程（背景清理過期未付款的 `pending_deposit`），這輪
+因為本來就要建 Vercel Cron 基礎設施，依草案決策 2，併進
+`runDepositCronSweep`（`/api/cron/deposit-sweep`）一次做掉：真正過期的
+`pending_deposit` 轉 `cancelled` 並釋放時段，跟 `deposit_expiring_soon`
+提醒共用同一支 10 分鐘頻率 cron。掛了三個 phase 的待辦正式清償，往後
+「上線前基礎設施」待辦帳本只剩：簡訊商串接、正式環境 SMTP、Vercel
+環境變數規劃、（新增）Vercel Pro 方案升級。
+
+### revisit_care 文案定稿
+老闆定稿文案已寫入 `message_templates` 種子（`supabase/migrations/
+20260714000010_phase_6_line_integration.sql`），移除原草稿的「預約
+回訪」按鈕與連結——**關懷訊息徹底去銷售化**，是既定店務策略：客人要
+約會自己從圖文選單進，關懷訊息不挾帶任何銷售動作，呼應 CLAUDE.md
+業務規則 3「隔日回訪＋前一日提醒」背後的營運洞察脈絡。往後同類
+情感／關懷性質範本比照此原則，預設不掛連結，除非老闆明確要求。
