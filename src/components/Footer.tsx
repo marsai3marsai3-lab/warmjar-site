@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Phone, Clock } from "lucide-react";
+import { MapPin, Phone, Clock, Mail } from "lucide-react";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -141,14 +141,39 @@ export default function Footer() {
                   屏東市莊敬街一段104號
                 </address>
               </li>
-              <li className="flex items-center gap-3">
-                <Phone size={15} className="text-terracotta-light shrink-0" />
-                <a
-                  href="tel:0979050630"
-                  className="text-sm text-cream/60 hover:text-terracotta-light transition-colors"
-                >
-                  0979-050-630
-                </a>
+              <li className="flex items-start gap-3">
+                <Phone size={15} className="text-terracotta-light mt-0.5 shrink-0" />
+                <span className="flex flex-col">
+                  <a
+                    href="tel:0979050630"
+                    className="text-sm text-cream/60 hover:text-terracotta-light transition-colors"
+                  >
+                    0979-050-630
+                  </a>
+                  <a
+                    href="tel:0989617228"
+                    className="text-sm text-cream/60 hover:text-terracotta-light transition-colors"
+                  >
+                    0989-617-228
+                  </a>
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Mail size={15} className="text-terracotta-light mt-0.5 shrink-0" />
+                <span className="flex flex-col">
+                  <a
+                    href="mailto:marsai3marsai3@gmail.com"
+                    className="text-sm text-cream/60 hover:text-terracotta-light transition-colors"
+                  >
+                    marsai3marsai3@gmail.com
+                  </a>
+                  <a
+                    href="mailto:marsliu525@gmail.com"
+                    className="text-sm text-cream/60 hover:text-terracotta-light transition-colors"
+                  >
+                    marsliu525@gmail.com
+                  </a>
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <Clock size={15} className="text-terracotta-light mt-0.5 shrink-0" />

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Phone, MapPin, Clock } from "lucide-react";
+import { Phone, MapPin, Clock, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "聯絡我們 | 屏東按摩 溫罐子地址・電話・地圖",
   description:
-    "溫罐子Spa館地址：屏東市莊敬街一段104號。電話：0979-050-630。營業時間：週一至週日 10:00–22:00。LINE：@warmjar。歡迎來電或到店詢問。",
+    "溫罐子Spa館地址：屏東市莊敬街一段104號。電話：0979-050-630、0989-617-228。營業時間：週一至週日 10:00–22:00。LINE：@warmjar。歡迎來電或到店詢問。",
   alternates: { canonical: "/contact" },
 };
 
@@ -69,9 +69,36 @@ export default function ContactPage() {
                     <p className="font-medium text-ink mb-1">電話</p>
                     <a
                       href="tel:0979050630"
-                      className="text-ink-muted hover:text-terracotta transition-colors text-lg"
+                      className="block text-ink-muted hover:text-terracotta transition-colors text-lg"
                     >
                       0979-050-630
+                    </a>
+                    <a
+                      href="tel:0989617228"
+                      className="block text-ink-muted hover:text-terracotta transition-colors text-lg"
+                    >
+                      0989-617-228
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-cream-border p-6 flex items-start gap-4 shadow-sm">
+                  <div className="w-11 h-11 rounded-xl bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-ink mb-1">Email</p>
+                    <a
+                      href="mailto:marsai3marsai3@gmail.com"
+                      className="block text-ink-muted hover:text-terracotta transition-colors"
+                    >
+                      marsai3marsai3@gmail.com
+                    </a>
+                    <a
+                      href="mailto:marsliu525@gmail.com"
+                      className="block text-ink-muted hover:text-terracotta transition-colors"
+                    >
+                      marsliu525@gmail.com
                     </a>
                   </div>
                 </div>
