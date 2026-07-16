@@ -129,6 +129,45 @@ export function MemberApp() {
       }
       setIdToken(token);
 
+      // Phase 7-A §4.3：櫃檯代客綁定路徑——網址帶 bindGrant 參數時走
+      // 這條，完全跳過下面既有的 liff-bind／OTP 補綁流程（那條路徑是
+      // Stage 6A-1 已經真機驗收過的，這裡刻意獨立成一個自成一體的分支，
+      // 不去動它，降低對已驗證流程的風險）。
+      const bindGrant = new URLSearchParams(window.location.search).get("bindGrant");
+      if (bindGrant) {
+        setStage("verifying");
+        const COUNTER_BIND_TIMEOUT_MS = 10_000;
+        const counterBindController = new AbortController();
+        const counterBindTimer = setTimeout(() => counterBindController.abort(), COUNTER_BIND_TIMEOUT_MS);
+        let counterBindRes: Response;
+        try {
+          counterBindRes = await fetch("/api/member/counter-bind-complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: token, grantToken: bindGrant }),
+            signal: counterBindController.signal,
+          });
+        } catch (fetchErr) {
+          if (fetchErr instanceof DOMException && fetchErr.name === "AbortError") {
+            throw new Error(`綁定驗證逾時（${COUNTER_BIND_TIMEOUT_MS / 1000} 秒無回應），請確認網路連線`);
+          }
+          throw fetchErr;
+        } finally {
+          clearTimeout(counterBindTimer);
+        }
+        if (!mountedRef.current) return;
+        const counterBindData = await counterBindRes.json();
+        if (!counterBindRes.ok) {
+          setError(counterBindData.error ?? "綁定連結已失效，請店員重新產生一次");
+          setStage("error");
+          return;
+        }
+        await loadAll();
+        if (!mountedRef.current) return;
+        setStage("ready");
+        return;
+      }
+
       setStage("verifying");
       const VERIFY_TIMEOUT_MS = 10_000;
       const verifyController = new AbortController();

@@ -21,6 +21,14 @@ export function buildBookingUrl(): string {
   return buildLiffUrl("/book") ?? `${siteBaseUrl()}/book`;
 }
 
+// Phase 7-A §4.3：櫃檯代客綁定——同一個 /member LIFF 深連結，多帶一個
+// bindGrant query 參數。MemberApp.tsx 讀到這個參數時會跳過既有的
+// liff-bind／OTP 補綁流程，改打 /api/member/counter-bind-complete。
+export function buildCounterBindUrl(grantToken: string): string {
+  const path = `/member?bindGrant=${encodeURIComponent(grantToken)}`;
+  return buildLiffUrl(path) ?? `${siteBaseUrl()}${path}`;
+}
+
 // 訂金付款連結不是 LIFF 頁面，是既有 /api/book/ecpay/checkout 這支一般
 // GET 端點（見該路由：帶 merchantTradeNo 直接自動送出到綠界），從 LINE
 // 訊息裡的一般連結點開就能用，不需要 LIFF context。

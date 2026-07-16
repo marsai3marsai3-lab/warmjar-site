@@ -61,6 +61,14 @@ export async function sendNotification(
   const checkReachable = deps.checkReachable ?? checkLineProfileReachable;
   const push = deps.push ?? pushLineMessage;
 
+  // Phase 7-A §5.4：緊急關閉開關，最先檢查——false 時完全不查範本/客人
+  // 資料，直接短路，讓 owner 能在出事時秒停整個推播系統。
+  const pushEnabledRes = await supabase.from("system_settings").select("value").eq("key", "push_enabled").maybeSingle();
+  const pushEnabled = (pushEnabledRes.data?.value as boolean | undefined) ?? true;
+  if (!pushEnabled) {
+    return finish(supabase, input, { status: "skipped", reason: "push_disabled_by_admin" });
+  }
+
   const templateRes = await supabase
     .from("message_templates")
     .select("channel, content, is_active")

@@ -9,7 +9,9 @@ import { sendNotification } from "@/lib/line/notificationSender";
 import { fetchManualSendCountToday } from "@/lib/line/messageTemplatesData";
 import { canSendManualNotification } from "@/lib/admin/manualSendPolicy";
 import { taipeiTodayISO } from "@/lib/admin/dateUtils";
-import { buildBookingUrl, buildMemberUrl } from "@/lib/line/liffLinks";
+import { buildBookingUrl, buildCounterBindUrl, buildMemberUrl } from "@/lib/line/liffLinks";
+import { createCounterBindGrant } from "@/lib/member/counterBindGrant";
+import { customerHasLineBinding } from "@/lib/booking/customersForMember";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -321,6 +323,45 @@ export async function refundStoredValue(customerId: string): Promise<ActionResul
     });
 
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
+  }
+}
+
+/**
+ * Phase 7-A §4.3：櫃檯代客綁定——店員對著站在櫃檯前、已核對過身分的
+ * 客人產生一組 10 分鐘短效的 QR 連結，manager+owner 皆可（跟手動單發
+ * 同一權限級別，不是移動金錢或高風險操作）。grantToken 本身不含任何
+ * 敏感資訊（customerId 明碼可讀，只是簽章防竄改），QR 內容不用特別
+ * 保密處理，但短效 + 產生後立刻遞給客人是唯一的防護層（見設計文件
+ * §4.3「安全取捨」）。
+ */
+export async function generateCounterBindGrant(
+  customerId: string
+): Promise<{ ok: true; url: string; expiresAt: number } | { ok: false; error: string }> {
+  try {
+    const { profile } = await requireAdminForAction();
+    const supabase = createAdminClient();
+
+    const secret = process.env.BOOKING_TOKEN_SECRET;
+    if (!secret) return { ok: false, error: "系統設定錯誤，請稍後再試" };
+
+    const customerRes = await supabase.from("customers").select("id").eq("id", customerId).maybeSingle();
+    if (customerRes.error || !customerRes.data) return { ok: false, error: "找不到這位會員" };
+    if (await customerHasLineBinding(supabase, customerId)) {
+      return { ok: false, error: "這位客人已經綁定 LINE，不需要再產生連結" };
+    }
+
+    const { token, expiresAt } = createCounterBindGrant(customerId, profile.id, secret);
+
+    await writeAuditLog(supabase, {
+      actorId: profile.id,
+      action: "admin.member.generate_counter_bind_grant",
+      targetTable: "customers",
+      targetId: customerId,
+    });
+
+    return { ok: true, url: buildCounterBindUrl(token), expiresAt };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
   }

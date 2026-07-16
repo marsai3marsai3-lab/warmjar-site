@@ -25,6 +25,7 @@ import { RescheduleDialog } from "./RescheduleDialog";
 import { RefundDepositButton } from "./RefundDepositButton";
 import { StoredValueTopupDialog } from "./StoredValueTopupDialog";
 import { SendLineMessageDialog } from "./SendLineMessageDialog";
+import { CounterBindDialog } from "./CounterBindDialog";
 
 const TABS = ["基本資料", "預約歷史", "訂金與爽約", "服務紀錄", "儲值"] as const;
 type Tab = (typeof TABS)[number];
@@ -93,6 +94,7 @@ export function MemberDetailView({
   } | null>(null);
   const [showTopupDialog, setShowTopupDialog] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
+  const [showBindDialog, setShowBindDialog] = useState(false);
 
   const isBlacklisted = detail.profile.status === "blacklisted";
   const storedValueTotal = storedValueAccount.principalBalance + storedValueAccount.bonusBalance;
@@ -228,6 +230,14 @@ export function MemberDetailView({
             className="mt-2 rounded-full border border-terracotta px-3 py-1 text-xs text-terracotta"
           >
             發送 LINE 訊息
+          </button>
+        )}
+        {!detail.profile.lineBound && (
+          <button
+            onClick={() => setShowBindDialog(true)}
+            className="mt-2 rounded-full border border-terracotta px-3 py-1 text-xs text-terracotta"
+          >
+            產生 LINE 綁定連結
           </button>
         )}
       </div>
@@ -553,6 +563,10 @@ export function MemberDetailView({
             refresh();
           }}
         />
+      )}
+
+      {showBindDialog && (
+        <CounterBindDialog customerId={detail.profile.id} onClose={() => setShowBindDialog(false)} />
       )}
 
       {rescheduleTarget && (

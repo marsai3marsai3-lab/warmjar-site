@@ -104,10 +104,24 @@ export async function POST(request: Request) {
 
   const customer = await findOrCreateCustomer(supabase, customerPhone, customerName);
 
+  // Phase 7-A §4.2：deposit_flow_enabled 關閉時全域略過訂金判定，不管
+  // 歷史紀錄算出什麼結果——重用既有的 manualWaiver 開關達成，不是額外
+  // 開一條繞過 evaluateDepositPolicy 呼叫的路徑（純函式本身不改，職責
+  // 分離：它只管「依歷史紀錄算」，要不要啟用整條訂金流程是呼叫端的
+  // 運維判斷）。上線時這個開關是 false（見 migration
+  // 20260722000011），此時系統會把每一筆都當作已核准 manualWaiver 處理。
+  const depositFlowRes = await supabase
+    .from("system_settings")
+    .select("value")
+    .eq("key", "deposit_flow_enabled")
+    .maybeSingle();
+  const depositFlowEnabled = (depositFlowRes.data?.value as boolean | undefined) ?? true;
+
   const depositHistory = await fetchCustomerDepositHistory(supabase, customer.id);
   const depositPolicy = evaluateDepositPolicy({
     customerHistory: depositHistory,
     totalFaceValue,
+    manualWaiver: !depositFlowEnabled,
   });
 
   const sqlClient = createSupabaseAppointmentSqlClient(supabase);

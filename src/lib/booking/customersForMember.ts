@@ -152,6 +152,27 @@ export async function findOrCreateCustomerForMember(
   return { customerId };
 }
 
+/**
+ * 型別筆記：這支查詢一定要包在一個宣告 `supabase: SupabaseClient<Database>`
+ * 的函式裡才能正確推論出 profiles 是單一物件（不是陣列）——
+ * createAdminClient() 本身沒有帶 <Database> 泛型，直接在呼叫端
+ * （例如 _actions.ts）inline 這個 embedded select 會讓 TS 退回成
+ * one-to-many 推論，導致 line_user_id 存取失敗。這支 helper 存在的
+ * 理由之一就是提供這層型別邊界，不是單純偷懶少寫一行查詢。
+ */
+export async function customerHasLineBinding(
+  supabase: SupabaseClient<Database>,
+  customerId: string
+): Promise<boolean> {
+  const res = await supabase
+    .from("customers")
+    .select("profiles ( line_user_id )")
+    .eq("id", customerId)
+    .maybeSingle();
+  if (res.error) throw res.error;
+  return !!res.data?.profiles?.line_user_id;
+}
+
 export async function findCustomerIdByLineUserId(
   supabase: SupabaseClient<Database>,
   lineUserId: string

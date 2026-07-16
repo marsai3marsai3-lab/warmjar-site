@@ -68,6 +68,29 @@ export async function updateNotificationSchedule(
   if (error) throw error;
 }
 
+/**
+ * Phase 7-A §5.4：上線後的緊急關閉開關。sendNotification 開頭讀這個值，
+ * false 時直接跳過整個推播（見 notificationSender.ts），owner 限定
+ * 才能切換（見 message-templates/_actions.ts 的 requireOwnerForAction）。
+ */
+export async function fetchPushEnabled(supabase: SupabaseClient<Database>): Promise<boolean> {
+  const { data, error } = await supabase.from("system_settings").select("value").eq("key", "push_enabled").maybeSingle();
+  if (error) throw error;
+  return (data?.value as boolean | undefined) ?? true;
+}
+
+export async function updatePushEnabled(
+  supabase: SupabaseClient<Database>,
+  enabled: boolean,
+  updatedBy: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("system_settings")
+    .update({ value: enabled, updated_at: new Date().toISOString(), updated_by: updatedBy })
+    .eq("key", "push_enabled");
+  if (error) throw error;
+}
+
 /** 手動單發每日上限（決策 3）用——只算今天、admin_manual、成功送出的次數。 */
 export async function fetchManualSendCountToday(
   supabase: SupabaseClient<Database>,

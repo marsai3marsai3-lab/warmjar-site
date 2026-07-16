@@ -3,7 +3,11 @@
 import { useState, useTransition } from "react";
 import type { MessageTemplate } from "@/lib/line/messageTemplatesData";
 import type { NotificationSchedule } from "@/lib/line/messageTemplatesData";
-import { updateMessageTemplateAction, updateNotificationScheduleAction } from "@/app/admin/(ops)/message-templates/_actions";
+import {
+  updateMessageTemplateAction,
+  updateNotificationScheduleAction,
+  updatePushEnabledAction,
+} from "@/app/admin/(ops)/message-templates/_actions";
 
 function TemplateCard({ template }: { template: MessageTemplate }) {
   const [isPending, startTransition] = useTransition();
@@ -110,12 +114,61 @@ function TemplateCard({ template }: { template: MessageTemplate }) {
   );
 }
 
+function PushKillSwitch({ initialEnabled }: { initialEnabled: boolean }) {
+  const [isPending, startTransition] = useTransition();
+  const [enabled, setEnabled] = useState(initialEnabled);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleToggle() {
+    setError(null);
+    const next = !enabled;
+    startTransition(async () => {
+      const result = await updatePushEnabledAction(next);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setEnabled(next);
+    });
+  }
+
+  return (
+    <section
+      className={`space-y-2 rounded-xl border p-3 ${enabled ? "border-cream-border bg-white" : "border-terracotta bg-terracotta/10"}`}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-ink">LINE 推播緊急關閉開關</p>
+          <p className="text-xs text-ink-light">
+            關閉後所有推播（含建單通知、提醒、關懷）立即停止發送，不用重新部署。僅店主可操作。
+          </p>
+        </div>
+        <span className={`text-xs font-medium ${enabled ? "text-olive-dark" : "text-terracotta-dark"}`}>
+          {enabled ? "正常發送中" : "已關閉"}
+        </span>
+      </div>
+      {error && <p className="text-xs text-terracotta-dark">{error}</p>}
+      <button
+        disabled={isPending}
+        onClick={handleToggle}
+        className={`rounded-full px-4 py-1.5 text-xs font-medium disabled:opacity-50 ${
+          enabled ? "bg-terracotta text-cream" : "bg-olive text-cream"
+        }`}
+      >
+        {enabled ? "立即關閉推播" : "恢復推播"}
+      </button>
+    </section>
+  );
+}
+
 export function MessageTemplateSettings({
   templates,
   schedule,
+  pushEnabled,
 }: {
   templates: MessageTemplate[];
   schedule: NotificationSchedule;
+  pushEnabled: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [reminderTime, setReminderTime] = useState(schedule.reminder_day_before);
@@ -143,6 +196,8 @@ export function MessageTemplateSettings({
     <div className="space-y-5 px-4 py-5 pb-10">
       <h1 className="font-heading text-xl font-semibold text-ink">通知範本與時段設定</h1>
       <p className="text-xs text-ink-light">僅店主可見。調整範本內容或發送時段，最慢 15～20 分鐘內生效，不用重新部署。</p>
+
+      <PushKillSwitch initialEnabled={pushEnabled} />
 
       <section className="space-y-2 rounded-xl border border-cream-border bg-white p-3">
         <p className="text-sm font-medium text-ink">發送時段</p>

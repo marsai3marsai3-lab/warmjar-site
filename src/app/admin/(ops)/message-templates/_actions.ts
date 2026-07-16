@@ -3,7 +3,12 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireOwnerForAction } from "@/lib/admin/auth";
 import { writeAuditLog } from "@/lib/booking/auditLog";
-import { updateMessageTemplate, updateNotificationSchedule, type NotificationSchedule } from "@/lib/line/messageTemplatesData";
+import {
+  updateMessageTemplate,
+  updateNotificationSchedule,
+  updatePushEnabled,
+  type NotificationSchedule,
+} from "@/lib/line/messageTemplatesData";
 import type { FlexTemplateContent } from "@/lib/line/flexMessageBuilder";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
@@ -33,6 +38,31 @@ export async function updateMessageTemplateAction(
       targetTable: "message_templates",
       targetId: templateId,
       after: input,
+    });
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "發生錯誤，請稍後再試" };
+  }
+}
+
+/**
+ * Phase 7-A §5.4：上線後的緊急關閉開關，owner 限定（跟退費/改抽成率
+ * 同一等級——這顆能讓全店推播瞬間停擺，不比照 §4.3 綁定按鈕的
+ * manager/owner 皆可）。
+ */
+export async function updatePushEnabledAction(enabled: boolean): Promise<ActionResult> {
+  try {
+    const { profile } = await requireOwnerForAction();
+    const supabase = createAdminClient();
+
+    await updatePushEnabled(supabase, enabled, profile.id);
+
+    await writeAuditLog(supabase, {
+      actorId: profile.id,
+      action: "admin.push_enabled.update",
+      targetTable: "system_settings",
+      after: { push_enabled: enabled },
     });
 
     return { ok: true };
