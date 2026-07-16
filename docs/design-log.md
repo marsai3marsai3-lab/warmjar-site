@@ -878,3 +878,34 @@ TS 會把 `profiles` 誤推論成陣列而不是單一物件（`{line_user_id}[]
 Wave 2 完成，等老闆回報 Wave 0 進度。Wave 3 開工前，依裁決二產出正式
 驗收劇本（比照 6A-1 格式的獨立文件），含 F-3b race-safe 測項。
 
+### Wave 2 驗收通過，Wave 3 正式驗收劇本已產出
+
+老闆追加兩項排入劇本：`push_enabled=false` 時 `notifications_log` 是否
+留下紀錄（含原因）、`deposit_flow_enabled=false` 時有爽約紀錄的測試
+會員走 `/book` 應直接 `confirmed`（確認開關語意正確）。
+
+**驗收前先讀程式碼核對，不是憑印象寫測項**（比照 2026-07-19 條目訂下
+的紀律）：重讀 `notificationSender.ts` 目前的 `sendNotification`／
+`finish()` 實作，確認 `push_enabled=false` 時走
+`finish(supabase, input, { status: "skipped", reason:
+"push_disabled_by_admin" })`，而 `finish()` 對任何結果都無條件寫一筆
+`notifications_log`（`skipped` 的 `error_message` 就是 `reason`）——
+**「關閉推播時是否留下紀錄」這件事現況已確認會留下紀錄，不是無聲跳過**，
+老闆原本掛的「若無聲跳過，屆時議是否補記錄」這個但書不成立，驗收劇本
+裡改寫成「拿真機結果核對這個判讀」，不是懸而未決的問題。
+
+`deposit_flow_enabled` 測項額外加測「打開開關後同一位客人真的會被要求
+訂金」——只測關閉時不收訂金不足以證明開關真的有作用（沒有排除巧合的
+可能性，`no_history` 本來就會導致 `requiresDeposit=false`，而測試會員
+特意製造了爽約紀錄就是為了排除這個巧合，但還需要反向驗證「打開時真的
+會變」才算完整證明開關語意正確），兩態都測完才算數。
+
+`docs/phase7a-wave3-acceptance-guide.md` 已落檔，比照
+`phase6-stage6a1-acceptance-guide.md` 格式，六個章節（零～五）+ 收尾，
+涵蓋 F-1 至 F-5（含新增的 F-3b／F-3c／F-3d）。`phase-7a-early-launch-draft.md`
+§9 Wave 3 表格同步更新，加入「對應驗收劇本章節」欄位，不重複列出詳細
+步驟。
+
+### 下一步
+等老闆執行 Wave 3 驗收劇本，回報結果（含任何 ✗ 項目）。全數通過後
+Phase 7-A 正式上線。
