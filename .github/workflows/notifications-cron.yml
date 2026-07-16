@@ -1,0 +1,51 @@
+name: LINE 推播排程備援（revisit_care / reminder_day_before）
+
+# 背景與設計理由完整記錄於 docs/phase-7a-early-launch-draft.md §2.3
+# Option C——Vercel Hobby 方案「每支 cron job 每天最多觸發一次」的限制
+# 下，reminder_day_before（20:00）與 revisit_care（12:30）需要兩個不同
+# 時段各自被觸發到，Vercel 原生 cron（見 vercel.json）只排得了其中一個
+# 時段（20:05）。這支 workflow 補上 12:35 這個 Vercel 排不到的時段，並在
+# 20:05 這個時段跟 Vercel 原生 cron 形成雙保險（兩邊都打，其中一邊當天
+# 若失敗，另一邊還是有機會把當天該發的提醒發出去）。
+#
+# 兩個時段打的都是同一支路由 /api/cron/notifications——這支路由內部依
+# system_settings.notification_schedule 判斷「現在該處理哪個範本」，同一
+# 支路由在不同時間點被呼叫，自然只會處理當下落在窗口內的範本，不需要為
+# 兩個時段分別寫兩支路由。
+#
+# 多打無害：notifications_log 對 (related_appointment_id, template_key)
+# 有 partial unique index（狀態為 sent 才算），已經成功發送過的不會被
+# 重複發送，Stage 6A-1 驗收（見 docs/phase6-stage6a1-acceptance-guide.md
+# 3-5）已經真機驗證過這個 dedupe 行為。
+
+on:
+  schedule:
+    # 12:35 台灣時間（UTC+8）= 04:35 UTC，落在 revisit_care 預設排定時段
+    # 12:30 的容許誤差窗內。Vercel 原生 cron（Hobby，每日一次）沒有排這
+    # 個時段，這是這個時段目前唯一的觸發來源。
+    - cron: "35 4 * * *"
+    # 20:05 台灣時間 = 12:05 UTC，落在 reminder_day_before 預設排定時段
+    # 20:00 的容許誤差窗內。Vercel 原生 cron 也排在同一分鐘（見
+    # vercel.json 的 "5 12 * * *"），這裡刻意排同一時間點形成雙保險，
+    # 不是重複設定的疏忽。
+    - cron: "5 12 * * *"
+  workflow_dispatch: {}
+  # 手動觸發用（例如驗收測試、懷疑某次排程沒跑想立刻補打一次），不影響
+  # 上面兩個排程時段的既有行為。
+
+jobs:
+  trigger-notifications-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 呼叫 /api/cron/notifications
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          # 正式子網域已於 docs/phase-7a-early-launch-draft.md §2.1 v2
+          # 定案為 book.warmjar.com.tw。在 Vercel 新 Project 的 DNS／部署
+          # 真正上線之前，這支排程仍會照時間準時觸發，但呼叫會失敗（網址
+          # 還打不通）——這是預期中的暫時狀態，不是設定錯誤，等 §9 工單
+          # 拆解裡的部署步驟完成後就會恢復正常。
+          curl --fail --silent --show-error \
+            -X GET "https://book.warmjar.com.tw/api/cron/notifications" \
+            -H "Authorization: Bearer ${CRON_SECRET}"
