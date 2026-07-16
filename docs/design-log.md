@@ -338,3 +338,389 @@ commit。
 約會自己從圖文選單進，關懷訊息不挾帶任何銷售動作，呼應 CLAUDE.md
 業務規則 3「隔日回訪＋前一日提醒」背後的營運洞察脈絡。往後同類
 情感／關懷性質範本比照此原則，預設不掛連結，除非老闆明確要求。
+
+## 2026-07-15 — Stage 6A-1（推播骨架）程式面完成，狀態：待真機驗收
+
+> 承 2026-07-14 條目：Phase 6 與夯客 HOTCAKE 並存策略定案為拆分
+> Stage 6A（純推播 + LIFF，零衝突）/ Stage 6B（全面取代，掛帳延後），
+> 過程見 [phase6-stage-split-design.md](phase6-stage-split-design.md)
+> （v2.1）與其對應的 [phase6-stage-split-review.md](phase6-stage-split-review.md)
+> 落差審查。本條目記錄 Stage 6A-1 的程式面交付狀態，**不是驗收通過
+> 條目**——驗收待真機測試通過後另補收官條目。
+
+### 程式面：244 個測試案例全綠（+25），tsc / lint / build 全過
+落地範圍：Config 拆分（`getLineCoreConfig()` 不再是 channelId／
+channelSecret／access token 三者綁死的 all-or-nothing gate）、
+Token Manager（stateless v3 token 動態發行 + 記憶體快取 +
+`LINE_CHANNEL_ACCESS_TOKEN` 降為過渡期 fallback）、unfollow 反應式
+偵測（`GET /v2/bot/profile/{userId}` 前置檢查取代原本設想但技術上
+不可行的「Push API 錯誤碼判斷封鎖」，見 design 文件 §2.3 的查證
+紀錄）、解封鎖恢復路徑（LIFF 登入成功時清除 `line_notify_blocked`）、
+額度監控（日結報表新增「LINE 訊息額度」區塊）。細節與偏離草案說明見
+`phase6-stage-split-design.md` v2.1 全文。
+
+### 驗收指南已落檔，待執行
+[phase6-stage6a1-acceptance-guide.md](phase6-stage6a1-acceptance-guide.md)
+（逐按鈕真機實測腳本，對應 design 文件 v2.1 驗收標準 1–7 項）已入庫，
+狀態「待執行」。
+
+### 阻擋項：LINE Developers Console 權限尚未認回
+驗收指南「零、前置條件」第一項——老闆需先確認能登入
+developers.line.biz 看到溫罐子 Messaging API channel（ID:
+2004034061）——目前未清償，是唯一擋著驗收開始的前置條件（其餘
+`.env.local`／cloudflared／測試帳號等前置條件不受此影響，可以先
+備妥）。此項清償後才能排真機驗收，通過後 Stage 6A-1 正式收官、
+Stage 6A-2（電子同意書）開始排設計草案。
+
+## 2026-07-16 — Console 權限完全認回；長期風險登錄；LINE 平台改制（LIFF 遷移）因應
+
+### 帳本登錄一：Console 權限進度更新，2026-07-15 條目的阻擋項解除
+Provider（#溫罐子，2002675868）Admin 權限、Messaging API channel
+（2004034061）Admin 權限均已取得，Channel ID 已核對無誤。
+`phase6-stage6a1-acceptance-guide.md`「零、前置條件」第一項可以打勾，
+真機驗收排程不再被這項卡住。
+
+另登錄一項新發現：該 Provider 底下除了溫罐子的 Messaging API channel，
+還有夯客既有的 **LINE Login channel「溫罐子」（狀態 Published）**——
+這支比照夯客既有 LIFF app 的既定禁碰邏輯，列入禁碰清單，不編輯、不
+刪除、不誤觸任何設定。已同步寫進 `phase6-stage-split-design.md` v2.2
+與驗收指南的禁區清單。
+
+### 帳本登錄二：長期風險條目——channel 掛在夯客 Provider 底下，列為 Stage 6B 前置談判事項
+溫罐子 Messaging API channel（2004034061）掛在**夯客所有的** Provider
+（2002675868）底下，不是掛在溫罐子自己名下的 Provider。LINE 不支援
+channel 跨 Provider 轉移，userId 綁定在 **Provider 層級**（查證見
+`phase6-stage-split-design.md` v2.2 §一：同一 Provider 底下不管
+LINE Login 或 Messaging API channel，同一使用者的 userId 都是同一個
+值；換了 Provider 就是另一個值）。這代表 Stage 6B（終止夯客合約、
+全面接管）真正執行時，若夯客把整個 Provider 收回或刪除，溫罐子會連帶
+失去這支 channel 跟已經累積的所有客人 userId 綁定關係——不是「重新
+申請一個新 channel」就能解決的問題，因為換了 Provider 全部客人的
+userId 都會變成不同值，等同會員 LINE 綁定全部歸零重來。
+
+**標記為 Stage 6B 前置談判事項，優先序高於「夯客合約到期日確認」**：
+終止合約前，必須以**書面**（不能只是口頭承諾）向夯客確保兩件事——
+(a) 溫罐子在該 Provider 的 Admin 權限持續保留；(b) channel 與
+Provider 本身不會被刪除或收回。就算合約到期日確認了、切換時點排定
+了，若沒有這份書面保障，終止合約當下就有直接弄丟全部客人 LINE 綁定
+關係的風險，這條必須排在 Stage 6B 啟動前先談攏，不能等到切換 Runbook
+階段才處理。
+
+### 平台變更因應：LINE 改制，Messaging API channel 不可再新增 LIFF app
+LINE 官方公告 Messaging API channel 不可再新增 LIFF app（Console 已
+實地確認），推翻原始 `phase-6-line-integration-draft.md` A.0「LIFF 要
+建在 Messaging API 頻道底下，不要另開 LINE Login 頻道」的操作指示——
+不是那條指示當初寫錯，是平台後來不允許這樣做了。
+
+設計文件更新為 v2.2（見 `phase6-stage-split-design.md`），核心因應：
+自建 LIFF 改掛**自建的 LINE Login channel**（`warmjar-booking`），但
+必須跟 Messaging API channel 建在**同一個 Provider**（2002675868）
+底下才能保住同一份 userId——真正的判準是 Provider 層級，不是
+channel 層級，v2.2 順手訂正了 A.0 原本「channel 層級」的不精確判準
+（A.0 的操作結論當初剛好因為 LIFF 天然跟 Messaging API channel 同一個
+Provider 而「湊巧正確」，但寫的理由不夠精確）。
+
+程式面對應改動：`verifyLineIdToken` 的 idToken 驗證 audience 改讀新
+環境變數 `LINE_LOGIN_CHANNEL_ID`（自建 Login channel 的 Channel ID），
+不再用 Messaging API 的 `LINE_CHANNEL_ID`。`.env.example`（新建，之前
+專案沒有這份文件）與 `.env.local` 同步新增這個變數的說明。測試面：
+`lineClient.test.ts` 的 idToken 驗證案例改為驗證 audience 使用
+`LINE_LOGIN_CHANNEL_ID`，並新增一筆「即使 Messaging API 的
+LINE_CHANNEL_ID/SECRET 都有設定，缺 LINE_LOGIN_CHANNEL_ID 依然失敗」
+的案例，證明兩者是獨立的組態來源。245 個測試案例（+1）、tsc / lint /
+build 全過。驗收指南（`phase6-stage6a1-acceptance-guide.md`）同步
+更新前置條件（Console 操作改三件事）與 LIFF 綁定驗收區（補一步驗證
+跨 channel userId 一致性）。
+
+## 2026-07-17 — LIFF 本機開發慣例：禁用 localhost 測試、必設 allowedDevOrigins
+
+> Stage 6A-1 真機驗收前，本機用 cloudflared quick tunnel 測 LIFF 綁定
+> 流程時排查出的兩個環境設定陷阱，皆非程式邏輯 bug，記錄下來避免下一
+> 輪（或 6A-2、6B）重新踩雷。兩條都只影響本機開發環境，不影響正式
+> 環境（正式網域本身就是 LIFF Endpoint URL，不會有這裡的落差）。
+
+### 慣例一：LIFF 本機測試一律用 cloudflared 通道網址，禁止直接開 localhost
+排查 `/member` 卡在「連接 LINE 中」不動時，dev server log 的
+`[browser]` 轉發訊息直接抓到：
+
+```
+[browser] [WARN] liff.init() was called with a current URL that is not related to the endpoint URL.
+http://localhost:3000/member is not under https://{通道網址}/member
+```
+
+用 `http://localhost:3000/member` 測試時，`liff.init()` 偵測到目前
+網址跟 LINE Console 登記的 LIFF Endpoint URL（通道網址）不同源，只印
+一句 `console.warn`，不拋錯、不 reject，完全繞過任何逾時/錯誤保護。
+後續 `liff.login()` 確實會觸發 LINE OAuth 跳轉，但因為登入在
+`localhost` origin 發起、卻在通道網址這個不同 origin 完成回呼，LIFF
+存 OAuth state 用的 browser storage 是依 origin 隔離的，兩個 origin
+讀不到彼此的 state，導致驗證失敗、`isLoggedIn()` 又判定未登入、再次
+觸發 `liff.login()`——形成靜默的登入迴圈（log 裡看得到同一組
+`code`/`state` 連續打了 4 次），而不是單純卡住不動。**往後 LIFF 相關
+功能本機測試，一律開通道網址（`https://{隨機字串}.trycloudflare.com/...`），
+不要為了方便直接開 `localhost:3000`。**
+
+### 慣例二：cloudflared 通道網域要加進 `allowedDevOrigins`
+Next.js dev server 預設會擋掉非 `localhost` 來源對 dev-only 資源
+（HMR websocket、`_next/static` chunk 等）的跨來源請求，log 裡對應
+警告：
+
+```
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "{通道網址}".
+```
+
+影響不只 HMR 熱更新失效（改完程式碼，已開啟的通道分頁收不到更新，
+等於在測一份舊版 JS，排查時很容易誤判「改的東西沒生效」），也可能
+連帶影響其他 dev-only 資源的跨來源請求。已在 `next.config.ts` 加上：
+
+```ts
+allowedDevOrigins: ["*.trycloudflare.com"],
+```
+
+用萬用字元涵蓋整個 `*.trycloudflare.com`，因為 cloudflared quick
+tunnel 每次重啟網址都會換一個新的隨機子網域，寫死單一網址下次重開
+通道又要回來改設定——查證 Next.js 16.2.9 官方文件（`allowedDevOrigins`
+config reference）確認這個版本本來就支援萬用字元子網域寫法，不是
+自創語法。這個設定只在 dev 模式生效，不影響正式環境 build。
+
+**往後規則**：LIFF／通道相關本機開發，這條設定視為既有基礎設施的
+一部分，不用每個 Phase 重新設定一次；若改用 ngrok 或其他通道工具，
+需要另外把該工具的網域樣式加進 `allowedDevOrigins`。
+
+## 2026-07-18 — 驗收 1-2 發現的規格洞：後台代客建單補接 booking_confirmed 推播
+
+### 排查過程：手動建單成功但收不到推播
+真機驗收標準 1（Token Manager 煙霧測試）第一步卡關：`/admin` 手動建一筆
+測試會員的預約，建單成功，手機完全沒收到推播。依 server log →
+`notifications_log` → `profiles.line_user_id` → 程式路徑 四段逐一排查：
+
+1. **server log**：`POST /admin/appointments/new` → `createManualAppointment`
+   200，無任何錯誤，但也完全看不到任何推播嘗試的痕跡。
+2. **`notifications_log`**：這筆預約查到 **0 筆**紀錄——不是「嘗試但失敗」，
+   是根本沒呼叫過 `sendNotification`。
+3. **`profiles`**：客人 `line_user_id` 有值、`line_notify_blocked = false`，
+   綁定正常；比對過跟第二區完成 LIFF 綁定的是同一筆 `profile_id`，排除
+   「選錯會員」或「綁定沒生效」的可能。
+4. **程式路徑**：`src/app/admin/(ops)/appointments/new/_actions.ts` 的
+   `createManualAppointment` 從一開始就沒有 import 或呼叫
+   `sendNotification`——對照 `/book/create-appointment/route.ts`（顧客自助
+   預約）才有接。原始草案 `phase-6-line-integration-draft.md` B.4 的觸發
+   條件字面上只寫 `create-appointment` API，沒涵蓋後台建單，是規格範圍
+   一開始就沒包進去的洞，不是既有程式碼的 bug；Token Manager／LIFF 綁定／
+   §2.3 封鎖偵測這幾段驗證下來全部正常。
+
+### 補洞決策：triggeredBy 沿用 system_event，不新增值
+原本設想比照既有的 `admin_manual` 這個 triggeredBy 值，但核對後發現
+`admin_manual` 已經是既有「會員詳情頁手動單發」功能專用（見
+`src/app/admin/(ops)/members/_actions.ts`），且 `notifications_log` 的
+`triggered_by` 欄位有 DB 層級 CHECK 約束（`supabase/migrations/
+20260714000010_phase_6_line_integration.sql`），只允許
+`system_cron`／`system_event`／`admin_manual` 三個值；`idx_notifications_log_dedupe`
+唯一索引還刻意把 `admin_manual` 排除在防重複發送保護之外（因為既有的手動
+單發功能就是要能對同一筆預約重複發）。若沿用 `admin_manual`，後台建單這裡
+會混進既有手動單發的報表統計、還會失去防重複發送保護。
+
+**確認採納**：`triggeredBy` 沿用 `/book` 那條路的 **`system_event`**（不
+新增值、不用 migration）——語意上兩者都是「預約建立成功事件觸發」，不分
+哪個 UI 建的單，且自動吃到既有 dedupe 保護。要分辨這筆通知是哪個 UI 觸發
+的，改查 `appointments.source`（後台建單本來就有記 `walk_in`/`phone`/`admin`
+等值），不靠 `triggered_by` 承擔這個責任。
+
+### 程式面：新增 `notifyBookingConfirmed` 共用 helper
+`src/lib/line/notificationSender.ts` 新增 `notifyBookingConfirmed(supabase,
+{ customerId, relatedAppointmentId, vars }, send?)`——固定
+`templateKey: "booking_confirmed"`、`triggeredBy: "system_event"`，內部
+try/catch 吞掉失敗，不外露給呼叫端（比照 `/book/create-appointment` 既有的
+fire-and-forget 慣例：推播失敗不得影響建單本身是否成功）。
+`createManualAppointment` 建單成功、寫完 audit log 之後呼叫這支 helper。
+新增 2 個測試案例（`notificationSender.test.ts` 246-247）：驗證呼叫參數
+（templateKey/triggeredBy/customerId/relatedAppointmentId/vars）正確、驗證
+`send` 拋出例外時 `notifyBookingConfirmed` 不外露例外。247 個測試案例（+2）、
+tsc / lint / build 全過。
+
+`docs/phase-6-line-integration-draft.md` B.4 觸發條件表補註（涵蓋後台建單
+的決策紀錄）；`docs/phase6-stage-split-design.md` 新增 §2.7 記錄這次驗收發現
+與補洞決策的摘要，兩處都指回本條目看完整脈絡。
+
+### 掛帳登錄：後台建單的 deposit_payment_link 發送策略，列入 Stage 6A 收尾範圍
+本輪刻意**不**處理 `deposit_payment_link`——後台代客建單目前一律直接
+`confirmed`、不走訂金流程（臨櫃/電話當下就能決定，不用客人自己上 ECPay
+付款頁），這個範本天生不適用現在的後台建單流程。但如果未來後台建單也要
+支援「客人電話預約、店家後台建單、但仍需要客人自己付訂金」這種混合情境，
+屆時要另外設計發送策略——不是單純技術問題，涉及**櫃檯溝通流程**（店員什麼
+時候該告知客人「等一下會收到付款連結」、要不要在後台畫面上就先提示店員
+這筆需要訂金等），需要另外跟老闆討論店務流程再排入設計。**列入 Stage 6A
+收尾範圍待議**，不併入這輪最小版本補丁。
+
+## 2026-07-19 — 驗收 1-3/1-4 排查發現：驗收指南寫了程式碼不存在的 log
+
+### 發現：`phase6-stage6a1-acceptance-guide.md` 驗收 1-3「檢查 server log
+有無 stateless token 發行紀錄」這條，`tokenManager.ts` 當時**完全沒有任何
+console 輸出**——不管是快取命中、重新發行、還是降級用 fallback，一律靜默
+進行。驗收步驟要求查一個根本不存在的證據，查了也查不到，跟「查了發現有
+問題」是兩回事——這種情況下只能先間接驗證（查 `notifications_log` 兩筆
+`booking_confirmed` 皆 `status='sent'`，反推 token 兩次都真的取得成功），
+沒辦法直接回答驗收步驟問的問題。
+
+### 補上對應 log，並訂為往後撰寫驗收步驟的紀律
+`resolveAccessToken`（`src/lib/line/tokenManager.ts`）三個分支各補一行
+console 輸出，統一前綴 `[tokenManager]`，**不輸出 token 值本身或任何片段**：
+- 快取命中：`console.log("[tokenManager] cache hit")`
+- 發行新 token：`console.log("[tokenManager] issued new token")`
+- 降級用 fallback：`console.warn("[tokenManager] WARN: fallback to static
+  token — stateless issuance may be failing")`——特意用 `warn` 且帶
+  `WARN` 字樣，因為過渡期 fallback 本來就該是罕見事件，驗收/維運要能
+  一眼從 log 等級跟字樣看出這不是正常路徑。
+
+新增 3 個測試案例（`tokenManager.test.ts` 248-250），驗證三個分支真的有
+呼叫對應的 `console.log`/`console.warn`，並額外斷言 fallback 那則 log
+沒有洩漏 token 值本身。**這是專案目前唯一一組測 console 輸出的測試**——
+其餘一律走純函式回傳值或 DI 注入斷言，特例理由是這幾行 log 存在的唯一
+目的就是給真機驗收查 server log 用，不驗證「真的有印出來」的話，這個
+功能自己就沒有測試覆蓋的意義。250 個測試案例（+3）、tsc / lint / build
+全過。
+
+### 往後規則：驗收步驟只能寫「程式實際有輸出的證據」
+**寫真機驗收指南（或任何要靠查 log／查資料庫來判斷通過與否的驗收步驟）
+之前，必須先確認證據來源真的存在**——不能假設「這種事應該會有 log
+吧」就直接寫進驗收步驟。具體做法：寫驗收步驟前，先讀一次要驗證的那段
+程式碼，確認要查的 log／欄位/紀錄是程式碼真的會產生的，不是預期會有、
+應該要有，或憑印象覺得會有的。這次的落差不是驗收指南寫錯，而是撰寫當下
+沒有回頭核對程式碼是否真的有這行輸出——往後補的原則同樣適用於「查
+notifications_log 的某個欄位」「查 profiles 的某個標記」這類驗收步驟，
+一併用這個標準檢查。
+
+## 2026-07-20 — Stage 6A-1 真機驗收（首日）完成，待隔日複查
+
+### 驗收結果：第 0、一、二、三、四、五區全數通過
+依 `phase6-stage6a1-acceptance-guide.md` 逐項執行，關鍵證據：
+
+- **第一區（Token Manager）**：`notifications_log` 兩筆 `booking_confirmed`
+  皆 `status='sent'`；server log 第一筆 `[tokenManager] issued new token`、
+  第二筆 `[tokenManager] cache hit`（且同一筆請求內部 checkReachable／push
+  各自呼叫一次 `getAccessToken()`，也各自命中預期分支）；全程無
+  fallback WARN。
+- **第二區（LIFF 綁定）**：排查過程波折較多（見下方補洞項），最終跨
+  channel userId 一致性、綁定/免 OTP 續登都驗證通過。
+- **第三區（cron 提醒）**：3-2 正確 secret → `{"sent":1}`；3-4 錯誤
+  secret → `401`；3-5 再觸發 → `{"sent":0}`，`notifications_log` 的
+  `reminder_day_before` 只有一筆 `sent`，dedupe 正常。
+- **第四區（封鎖偵測）**：`profiles.line_notify_blocked=true`、
+  對應 `notifications_log` 該筆 `status='skipped'`、
+  `error_message='profile_404'`，符合預期。
+- **第五區（解封鎖恢復）**：解除封鎖＋重新 LIFF 登入後，
+  `line_notify_blocked` 回到 `false`，之後一筆推播 `status='sent'`。
+
+六、七區狀態依實際補記；七區（夯客迴歸檢查）7-5 要求隔日重複
+7-1~7-3，**今天只能先做首日部分，正式判定待隔日複查**。
+
+### 驗收過程中的補洞與強化（四項）
+1. **後台建單原本沒接推播**——驗收 1-2 發現，補上
+   `notifyBookingConfirmed`、`triggeredBy` 定案為 `system_event`，完整
+   排查過程與決策見 2026-07-18 條目。
+2. **`tokenManager.ts` 三分支補 log**——驗收 1-3/1-4 發現指南假設了
+   不存在的證據來源，補上 `[tokenManager] cache hit` /
+   `issued new token` / `WARN: fallback to static token`，完整脈絡見
+   2026-07-19 條目。
+3. **`MemberApp.tsx` 從單一「連接 LINE 中」改成四階段進度＋全程逾時
+   保護**——真機排查「永久卡住、逾時從未觸發」時，逐層發現多個獨立
+   問題疊加：
+   - 原本只有 `liff.init()` 呼叫本身包 10 秒逾時，前面
+     `await import("@line/liff")`（動態載入 SDK chunk）完全不在保護
+     範圍內，chunk 載入卡住時逾時計時器根本沒被建立過。改成把「動態
+     載入 SDK ＋呼叫 `init()`」整段包進同一個 `Promise.race`。刻意
+     **不**改成 static import——client component 在 Next.js App Router
+     底下 SSR 階段仍會執行一次，`@line/liff` 這類存取
+     `window`/`navigator` 的瀏覽器 SDK 若在模組頂層 static import，
+     很可能讓 `/member` 的 SSR 直接噴錯，這是原始草案
+     （`phase-6-line-integration-draft.md` A.2）選擇動態 import 的
+     既有理由，不是隨手挑的寫法。
+   - `liff.login()` 呼叫後原本直接 `return`，沒有任何逾時／錯誤保護，
+     若導頁沒真的發生會無聲卡住——加 5 秒逾時，逾時顯示具體錯誤跟
+     可能原因。
+   - 補 `mountedRef` 守衛，防止 React 開發模式 StrictMode 雙跑
+     `useEffect` 時，「已被取代」的執行個體晚一步 resolve 蓋掉當下
+     畫面狀態。
+   - 畫面從單一「連接 LINE 中」拆成 `init`／`checking_login`／
+     `redirecting`／`verifying` 四階段文字，每階段都能從畫面直接看出
+     卡在哪一步，不用再靠猜。
+   - 排查過程中意外抓到真正的路徑問題（見下一項）跟一個平台限制
+     （`liff.init()` 對「目前網址跟 Endpoint URL 不同源」只印
+     `console.warn`、不拋錯，這是 LINE SDK 官方行為，不是本專案能改的）。
+4. **LIFF 本機測試環境慣例**——禁止直接開 `localhost` 測試（origin
+   不一致會導致 OAuth state 跨 origin 讀不到、形成靜默登入迴圈）、
+   `next.config.ts` 加 `allowedDevOrigins: ["*.trycloudflare.com"]`
+   （不然 HMR 熱更新對通道網址整個失效，改的程式碼推不過去，排查時
+   容易誤判「改的東西沒生效」）。完整脈絡見 2026-07-17 條目。
+
+### `notification_schedule` 復原確認
+查證 DB 現值：`{"revisit_care":"12:30","reminder_day_before":"20:00"}`——
+`reminder_day_before` 已復原為 `20:00`，驗收期間為了測試改成的 `16:10`
+沒有殘留。
+
+### 狀態：待隔日複查，通過即正式關閉 6A-1
+7-5（隔日重複 7-1~7-3：夯客自動回覆／Rich Menu／夯客預約通知）是唯一
+還沒執行的項目，明天複查通過後 Stage 6A-1 才正式收官。
+
+### 下一項：Stage 6A-2（電子同意書）設計草案排程
+6A-1 正式關閉後開始排。範圍見
+`phase6-stage-split-design.md` §2.5（簽名擷取／存檔版本控管／與服務
+紀錄照片的依賴關係），本輪只定範圍未展開實作細節，需另立設計草案。
+
+## 2026-07-21 — Stage 6A-1 隔日複查通過，正式關閉
+
+### 複查結果：7-5 通過，完整營運日觀察無異常
+唯一懸而未決的 7-5（隔日重複 7-1~7-3）今日執行，結果：
+- 傳訊息給溫罐子 OA，夯客自動回覆與昨日基準一致，無異常。
+- Rich Menu 顯示與功能與基準一致，未被本輪 Stage 6A-1 任何操作影響。
+- 走一次夯客預約流程，夯客通知正常送達。
+- 非僅單點抽查，而是完整營運日全程觀察（含當日一般客流時段的自然
+  觸發），全程未見任何與基準的落差。
+
+至此 `phase6-stage6a1-acceptance-guide.md` 零～八區、驗收標準 1–8
+全數通過，其中第四區（夯客迴歸檢查）連續兩日抽查皆與基準一致，
+符合驗收標準 4 要求的「隔日再抽查一次」。
+
+### 收官摘要
+LINE 推播全鏈路——Token Manager stateless token 發行（含快取命中／
+到期重發）、`GetProfile` 推播前置檢查、封鎖偵測與解封後恢復路徑、
+cron 提醒時段窗與 dedupe、額度監控數字顯示、LIFF 綁定與跨 channel
+userId 一致性（同 Provider 下 Login channel／Messaging API channel
+共用同一份 userId）——均已於真機驗證通過。全程雙日驗收（首日
+2026-07-20 + 隔日 2026-07-21）夯客既有的自動回覆、Rich Menu、
+預約通知三者皆與驗收前基準一致，**夯客零影響目標達成**，Stage 6A-1
+範圍內未觸碰任何禁區資源（Webhook URL、long-lived token
+Issue/Reissue、Rich Menu 建立、manager.line.biz 設定、夯客既有
+LIFF／LINE Login channel）。
+
+### 驗收結案總表（對照驗收標準 1–8）
+1. Token Manager 煙霧測試（stateless token，非 fallback）——通過，見
+   2026-07-20 條目第一區。
+2. LIFF 綁定＋跨 channel userId 一致性——通過，見 2026-07-20 條目
+   第二區。
+3. cron 提醒推播（按時送達＋dedupe）——通過，見 2026-07-20 條目
+   第三區。
+4. 夯客迴歸檢查（首日＋隔日各一次）——通過，本條目＋2026-07-20
+   條目。
+5. 額度監控數字正確顯示——通過，見 2026-07-20 條目第六區。
+6. unfollow 偵測（封鎖→標記→跳過推播）——通過，見 2026-07-20 條目
+   第四區。
+7. 解封鎖恢復路徑——通過，見 2026-07-20 條目第五區。
+8. tsc / lint / build / 測試全綠（250 個測試案例）——通過，見
+   2026-07-19 條目。
+
+驗收過程中的四項補洞與強化（後台建單接推播、tokenManager 補 log、
+MemberApp 四階段進度＋逾時保護、LIFF 本機測試環境慣例）已於
+2026-07-20 條目記錄，不重複列出。
+
+### 狀態：Stage 6A-1 已關閉
+`phase6-stage-split-design.md` 頂部狀態與 `phase6-stage6a1-acceptance-guide.md`
+同步改為「已關閉，驗收全數通過」。§五 待確認事項第 5 項（6A-2
+排程時間點：立即接續或先觀察 6A-1 穩定）採「立即接續」處置——見下方。
+
+### 帳本登錄：下一項啟動——Stage 6A-2（電子同意書）設計草案
+6A-1 關閉，帳本推進至下一項：Stage 6A-2（電子同意書簽署）設計草案。
+範圍延續 `phase6-stage-split-design.md` §2.5 已定的三個子項（簽名
+擷取方式、存檔版本控管、與服務紀錄照片上傳的依賴關係），本輪展開
+為獨立設計草案，尚未定案，暫不進入實作。
+

@@ -3,6 +3,7 @@ import { requireOwnerUser } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchDailyReport } from "@/lib/checkout/dailyReportData";
 import { addDaysISO, formatWeekdayLabel, taipeiTodayISO } from "@/lib/admin/dateUtils";
+import { getMessageQuotaStatus } from "@/lib/line/lineClient";
 
 type SearchParams = Promise<{ date?: string }>;
 
@@ -22,6 +23,9 @@ export default async function DailyReportPage({ searchParams }: { searchParams: 
 
   const supabase = createAdminClient();
   const report = await fetchDailyReport(supabase, date);
+  // 額度是「本月」快照，跟報表選的日期無關，也不能讓 LINE 沒設定/查詢
+  // 失敗連累整張報表噴錯——見 docs/phase6-stage-split-design.md §2.6。
+  const quota = await getMessageQuotaStatus();
 
   return (
     <div className="space-y-5 px-4 py-5 pb-10">
@@ -128,6 +132,21 @@ export default async function DailyReportPage({ searchParams }: { searchParams: 
           <span className="text-ink-muted">結帳筆數</span>
           <span className="text-ink">{report.checkoutCount} 筆</span>
         </div>
+      </section>
+
+      <section className="rounded-xl border border-cream-border bg-white p-3 text-sm">
+        <p className="mb-2 font-medium text-ink">LINE 訊息額度（本月，非當日）</p>
+        {quota.ok ? (
+          <div className="flex justify-between">
+            <span className="text-ink-muted">本月已用 / 上限</span>
+            <span className="text-ink">
+              {quota.totalUsage.toLocaleString()} /{" "}
+              {quota.limitType === "none" ? "無上限" : (quota.limitValue ?? 0).toLocaleString()}
+            </span>
+          </div>
+        ) : (
+          <p className="text-ink-light">額度資訊暫時無法取得（{quota.error}）</p>
+        )}
       </section>
 
       <a

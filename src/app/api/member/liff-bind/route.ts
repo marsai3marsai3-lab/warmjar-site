@@ -5,6 +5,7 @@ import { liffBindRequestSchema } from "@/lib/member/schemas";
 import { findCustomerIdByLineUserId } from "@/lib/booking/customersForMember";
 import { createMemberSession } from "@/lib/booking/otpSession";
 import { setMemberSessionCookie } from "@/lib/member/session";
+import { clearLineNotifyBlockedFlag } from "@/lib/line/notificationSender";
 
 /**
  * 前端每次打開 /member 都先打這支——同時扮演「首次檢查」跟「之後每次
@@ -35,6 +36,12 @@ export async function POST(request: Request) {
   if (!customerId) {
     return NextResponse.json({ ok: true, bound: false });
   }
+
+  // 能成功走到這裡代表這支手機當下一定能打開 LIFF、拿到 idToken——
+  // 不可能是被封鎖的狀態，順手清掉可能誤標或過期的封鎖標記（見
+  // notificationSender.ts 的 clearLineNotifyBlockedFlag 註解、
+  // docs/phase6-stage-split-design.md §2.3 解封鎖恢復路徑）。
+  await clearLineNotifyBlockedFlag(supabase, verifyResult.lineUserId);
 
   const { token } = createMemberSession(customerId, verifyResult.lineUserId, secret);
   const response = NextResponse.json({ ok: true, bound: true });

@@ -6,6 +6,7 @@ import { liffCompleteBindRequestSchema } from "@/lib/member/schemas";
 import { findOrCreateCustomerForMember } from "@/lib/booking/customersForMember";
 import { createMemberSession, verifyBookingSession } from "@/lib/booking/otpSession";
 import { setMemberSessionCookie } from "@/lib/member/session";
+import { clearLineNotifyBlockedFlag } from "@/lib/line/notificationSender";
 
 const BOOK_SESSION_COOKIE = "book_session";
 
@@ -45,6 +46,10 @@ export async function POST(request: Request) {
     verifyResult.lineUserId,
     verifyResult.name
   );
+
+  // 同 liff-bind：走到這裡代表這支手機當下一定能用 LIFF 完成登入，
+  // 順手清掉可能誤標或過期的封鎖標記（見 §2.3 解封鎖恢復路徑）。
+  await clearLineNotifyBlockedFlag(supabase, verifyResult.lineUserId);
 
   const { token } = createMemberSession(customerId, verifyResult.lineUserId, secret);
   const response = NextResponse.json({ ok: true });

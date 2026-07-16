@@ -348,8 +348,8 @@ template_key)` 的成功紀錄最不會出錯。
 
 | 範本 key | 觸發條件 | 何時查/發 |
 |---|---|---|
-| `booking_confirmed` | 建立成功的預約（`create-appointment` API 成功回應後）| **即時**，不進排程，API 成功後直接呼叫發送（`system_event`）|
-| `deposit_payment_link` | 建立時判定 `requiresDeposit=true` 的預約 | 跟 `booking_confirmed` 同一次即時發送，同一則或緊接第二則 Flex（含 ECPay 付款連結）|
+| `booking_confirmed` | 建立成功的預約（`create-appointment` API 成功回應後）| **即時**，不進排程，API 成功後直接呼叫發送（`system_event`）。**v2.2 補註（Stage 6A-1 驗收 1-2 發現的規格洞）**：這裡原文只寫 `create-appointment` API，字面上沒涵蓋後台代客建單（`/admin/appointments/new` 的 `createManualAppointment` Server Action）——驗收時發現後台建單完全沒觸發這則通知，已補上，一樣用 `system_event`（不是 `admin_manual`：`admin_manual` 是既有「會員詳情頁手動單發」功能專用值，且被 `idx_notifications_log_dedupe` 唯一索引排除在防重複發送保護外，混用會讓後台建單失去這層保護，也會污染那個既有功能的報表統計）。**判準記在這裡，之後做報表或再新增建立預約入口的人都要照辦**：`notifications_log.triggered_by` 只用來分「系統事件觸發」（`system_event`／`system_cron`）vs「店員手動單發」（`admin_manual`）這個維度，**不要**用它來分辨「這筆通知是哪個 UI/入口觸發的」——那件事一律查對應 `appointments.source`（`walk_in`／`phone`／`line_oa`／`instagram`／`admin`／`web`），不要在 `triggered_by` 上加新值來做這個區分，也不要事後想著要不要拿 `triggered_by` 兼職這個用途。往後任何新增的「建立預約」入口，都要記得比照接上這則通知，不是只有 `/book` 這一條路。 |
+| `deposit_payment_link` | 建立時判定 `requiresDeposit=true` 的預約 | 跟 `booking_confirmed` 同一次即時發送，同一則或緊接第二則 Flex（含 ECPay 付款連結）。**v2.2 補註**：後台代客建單目前**不**接這則——後台建單一律直接 `confirmed`、不走訂金流程（見 `createManualAppointment` 註解），這個 key 天生不適用；若未來後台建單也要支援訂金情境，屆時需另外設計發送策略（涉及櫃檯溝通流程），已掛帳，見 `design-log.md`。 |
 | `deposit_expiring_soon` | `pending_deposit` 且 `expires_at` 即將到期（例如剩 10 分鐘內）| 排程掃描，每 5～10 分鐘跑一次 |
 | `reminder_day_before` | `status IN ('confirmed')`，`appointment_date = 明天` | 排程，**每天 20:00** 跑一次（對應 CLAUDE.md 業務規則 3）|
 | `revisit_care` | `status = 'completed'`，`appointment_date = 昨天` | 排程，每天固定時間跑一次（建議也訂 20:00 或早上，兩者可以是同一支 cron route 依序執行，不用分兩支）|

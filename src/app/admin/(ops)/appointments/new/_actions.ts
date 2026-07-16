@@ -12,6 +12,9 @@ import { findOrCreateCustomer } from "@/lib/booking/customers";
 import { writeAuditLog } from "@/lib/booking/auditLog";
 import { broadcastCalendarChange } from "@/lib/admin/realtime";
 import { BOOKING_BUFFER_MINUTES } from "@/lib/booking/constants";
+import { formatWeekdayLabel } from "@/lib/admin/dateUtils";
+import { notifyBookingConfirmed } from "@/lib/line/notificationSender";
+import { buildMemberUrl } from "@/lib/line/liffLinks";
 
 type ActionResult = { ok: true; appointmentIds: string[] } | { ok: false; error: string };
 
@@ -47,7 +50,7 @@ export async function createManualAppointment(input: {
 
     const variantsRes = await supabase
       .from("service_variants")
-      .select("id, duration_minutes")
+      .select("id, name, duration_minutes")
       .in("id", input.serviceVariantIds);
     if (variantsRes.error || !variantsRes.data) return { ok: false, error: "服務項目資料錯誤" };
 
@@ -102,6 +105,26 @@ export async function createManualAppointment(input: {
     });
 
     await broadcastCalendarChange({ appointmentId: result.appointmentIds[0], date: input.date });
+
+    // 驗收 1-2 發現的規格洞補上：後台代客建單原本完全沒接推播，只有
+    // /book 自助預約會發 booking_confirmed（見 design-log.md 條目）。
+    // 失敗是否外露、triggeredBy 該用哪個值，統一交給
+    // notifyBookingConfirmed 處理，這裡只負責組資料。
+    const staffRes = await supabase.from("staff").select("name").eq("id", resolvedStaffId).maybeSingle();
+    const serviceName = variantsRes.data.map((v) => v.name).join("、");
+    await notifyBookingConfirmed(supabase, {
+      customerId: customer.id,
+      relatedAppointmentId: result.appointmentIds[0],
+      vars: {
+        name: input.customerName,
+        date: input.date,
+        weekday: formatWeekdayLabel(input.date),
+        startTime: input.startTime,
+        staffName: staffRes.data?.name ?? "未指定",
+        serviceName,
+        memberUrl: buildMemberUrl(),
+      },
+    });
 
     return { ok: true, appointmentIds: result.appointmentIds };
   } catch (err) {

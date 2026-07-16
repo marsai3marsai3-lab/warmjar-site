@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getLineConfig } from "@/lib/line/lineConfig";
+import { getLineCoreConfig } from "@/lib/line/lineConfig";
 import { verifyLineSignature } from "@/lib/line/webhookSignature";
 
 type LineEvent = {
@@ -15,7 +15,7 @@ type LineEvent = {
  * 之後直接 skip，不要每次都打一次注定失敗的 API。
  */
 export async function POST(request: Request) {
-  const config = getLineConfig();
+  const config = getLineCoreConfig();
   if (!config) return new NextResponse("config error", { status: 500 });
 
   const rawBody = await request.text();
